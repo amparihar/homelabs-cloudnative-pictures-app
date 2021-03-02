@@ -1,0 +1,39 @@
+{
+  "Records": [
+    {
+      "eventVersion": "2.1",
+      "eventSource": "aws:s3",
+      "awsRegion": "ap-south-1",
+      "eventTime": "2021-02-08T10:32:02.769Z",
+      "eventName": "ObjectCreated:Put",
+      "userIdentity": {
+        "principalId": "AWS:AIDA3NZSWD5SVAAUSZ3TW"
+      },
+      "requestParameters": {
+        "sourceIPAddress": "64.58.230.33"
+      },
+      "responseElements": {
+        "x-amz-request-id": "C6D9ABEEC1E8A79F",
+        "x-amz-id-2": "DtDwLwzrt3zK1dna6rXmt5unWMYvvHnoHQ6ndTipDJvXSPDp0IaC7ZxqyFg6ukd1E3qaacn9xNOOQdSZNgL6rvccNrthdLMI"
+      },
+      "s3": {
+        "s3SchemaVersion": "1.0",
+        "configurationId": "MDkxNzczODQtYTNkYS00YjQwLTk1M2EtYTUxN2Y1ZGRmYTA3",
+        "bucket": {
+          "name": "cloudnativeappstack-cnaimagebucket806c57ec-1tqbay4h720o6",
+          "ownerIdentity": {
+            "principalId": "A20WYRH07L145Q"
+          },
+          "arn": "arn:aws:s3:::cloudnativeappstack-cnaimagebucket806c57ec-1tqbay4h720o6"
+        },
+        "object": {
+          "key": "demo.txt",
+          "size": 36,
+          "eTag": "dd38083b14ef3c5114ab6a2cb0f419e9",
+          "versionId": "wofLk6mSNOeBzHyqYfJJhwFsv0dLPRSY",
+          "sequencer": "00602113254541B59D"
+        }
+      }
+    }
+  ]
+}
