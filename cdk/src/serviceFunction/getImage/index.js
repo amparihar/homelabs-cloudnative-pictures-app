@@ -2,10 +2,7 @@ const AWS = require("aws-sdk");
 
 const db = new AWS.DynamoDB.DocumentClient();
 
-export const run = async (
-  event: { imageId: string },
-  context: any
-): Promise<any> => {
+exports.run = async (event, context) => {
   const params = {
     TableName: process.env.IMAGE_TABLE,
     KeyConditionExpression: "id=:id",

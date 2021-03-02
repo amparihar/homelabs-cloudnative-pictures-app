@@ -3,7 +3,7 @@ const AWS = require("aws-sdk");
 const s3 = new AWS.S3(),
   db = new AWS.DynamoDB.DocumentClient();
 
-export const run = async (event: any, context: any): Promise<any> => {
+exports.run = async (event, context) => {
   try {
     const imageRow = await getImageFromTable(event.imageId);
     const key = imageRow[0].image;
@@ -14,7 +14,7 @@ export const run = async (event: any, context: any): Promise<any> => {
   }
 };
 
-const getImageFromTable = async (imageId : string) => {
+const getImageFromTable = async (imageId) => {
   const params = {
     TableName: process.env.IMAGE_TABLE,
     KeyConditionExpression: "id=:id",
@@ -34,7 +34,7 @@ const getImageFromTable = async (imageId : string) => {
   }
 };
 
-const deleteFromTable = async (imageId: string) => {
+const deleteFromTable = async (imageId) => {
   const params = {
     TableName: process.env.IMAGE_TABLE,
     Key: {
@@ -53,7 +53,7 @@ const deleteFromTable = async (imageId: string) => {
   }
 };
 
-const deleteFromBucket = async (key : string) => {
+const deleteFromBucket = async (key) => {
   const params = {
     Bucket: process.env.IMAGE_BUCKET,
     Key: key,
