@@ -3,7 +3,7 @@ const AWS = require("aws-sdk");
 const s3 = new AWS.S3(),
   db = new AWS.DynamoDB.DocumentClient();
 
-module.exports.run = async (event, context) => {
+export const run = async (event: any, context: any): Promise<any> => {
   try {
     const imageRow = await getImageFromTable(event.imageId);
     const key = imageRow[0].image;
@@ -14,7 +14,7 @@ module.exports.run = async (event, context) => {
   }
 };
 
-const getImageFromTable = async (imageId) => {
+const getImageFromTable = async (imageId : string) => {
   const params = {
     TableName: process.env.IMAGE_TABLE,
     KeyConditionExpression: "id=:id",
@@ -34,7 +34,7 @@ const getImageFromTable = async (imageId) => {
   }
 };
 
-const deleteFromTable = async (imageId) => {
+const deleteFromTable = async (imageId: string) => {
   const params = {
     TableName: process.env.IMAGE_TABLE,
     Key: {
@@ -48,12 +48,12 @@ const deleteFromTable = async (imageId) => {
   } catch (error) {
     console.log(`There was an error while deleting image data for ${imageId}`);
     console.log("error", error);
-    console.log("params", params.ExpressionAttributeValues);
+    console.log("params", params.Key);
     throw new Error(`No image or error occured`);
   }
 };
 
-const deleteFromBucket = async (key) => {
+const deleteFromBucket = async (key : string) => {
   const params = {
     Bucket: process.env.IMAGE_BUCKET,
     Key: key,

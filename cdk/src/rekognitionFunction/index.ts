@@ -5,7 +5,7 @@ const rekognition = new AWS.Rekognition(),
   s3 = new AWS.S3(),
   db = new AWS.DynamoDB.DocumentClient();
 
-module.exports.run = async (event, context, lambdaCallback) => {
+export const run = async (event: any, context: any): Promise<any> => {
   try {
     const records = event.Records;
 
@@ -16,14 +16,13 @@ module.exports.run = async (event, context, lambdaCallback) => {
 
       const labels = await detectImageLabels(name, key);
       await saveImageLabels(key, labels.Labels);
-      lambdaCallback(null);
     }
   } catch (err) {
-    lambdaCallback(err);
+    console.log(err);
   }
 };
 
-const detectImageLabels = async (name, key) => {
+const detectImageLabels = async (name: string, key: string) => {
   const request = {
     Image: {
       S3Object: {
@@ -37,7 +36,7 @@ const detectImageLabels = async (name, key) => {
   return labels;
 };
 
-const saveImageLabels = async (key, labels) => {
+const saveImageLabels = async (key: string, labels: any[]) => {
   if (!labels.length) return;
   const params = {
     TableName: process.env.IMAGE_TABLE,
@@ -51,6 +50,6 @@ const saveImageLabels = async (key, labels) => {
   await db.put(params).promise();
 };
 
-const serialize = (object) => {
+const serialize = (object: any) => {
   return JSON.stringify(object, null, 2);
 };
