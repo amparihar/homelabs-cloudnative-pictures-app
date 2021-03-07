@@ -1,0 +1,20 @@
+{
+  "Records": [
+      {
+          "messageId": "d16243c5-bd10-431c-b325-7578aff896eb",
+          "receiptHandle": "AQEBD1RlsGXBB+3B/XE2sWCTfXUNUo4GwICYlulroW2D4e+pIEmo6a+71CycnzTKNxU5+AZTFkIbev+9tpx2E24sxd9vHcBRIkn4W8R7CYFzJ51rU6tWzm8Yvewuqoo8PpGgld63ku9KLcneeN5BRKE9sWoNTm+aoxILx9VDN0pUH5DOryyZH3iqRJ+17K5ZXBSA4Ur7uJmYicgm871jt+ZODzvkcbO7/wQ8a0rHPEWt26VeD1Cb4Ka/g0SCaUDDIM9NinJQ/dVL4888hhIT/S84Vd8k8aMs9MOcUvNipYiQZVxvKhL2RkKQI5fF9oIU+QUGG77Cu7QxN4QAx98Y3X8v0DZQSdX0woEPHLwDEIbvR4E0yHYbbGSb84Q7M4/WY/YgRneKQ3wIFi7E8H1rEgLqYrZQh/BCKeZDk29cojly33oNhcvpt8ctZTJqjKW1JG6Eym721LCOZxzQ2yRm9Qktkw==",
+          "body": "{\"Records\":[{\"eventVersion\":\"2.1\",\"eventSource\":\"aws:s3\",\"awsRegion\":\"ap-south-1\",\"eventTime\":\"2021-03-06T18:04:53.520Z\",\"eventName\":\"ObjectCreated:Put\",\"userIdentity\":{\"principalId\":\"AWS:AIDA3NZSWD5SVAAUSZ3TW\"},\"requestParameters\":{\"sourceIPAddress\":\"64.58.230.33\"},\"responseElements\":{\"x-amz-request-id\":\"98D4F6012CDC6329\",\"x-amz-id-2\":\"wpO4Rsqmwezwa7KZeiSTwWQXyoXTHk3y379rjzHE/EQUzknQ7XSpH81vn0nhErqzYRC2B2kXapDRYNABoJkS0WdZgkMma7Oq\"},\"s3\":{\"s3SchemaVersion\":\"1.0\",\"configurationId\":\"YmZiODAyODMtNzlhNC00NWRlLTliM2QtYTRmNTFlNjRlNDE4\",\"bucket\":{\"name\":\"homelabs-pipbackend-stack-imagebuckete8f90778-qdrctjvevg4l\",\"ownerIdentity\":{\"principalId\":\"A20WYRH07L145Q\"},\"arn\":\"arn:aws:s3:::homelabs-pipbackend-stack-imagebuckete8f90778-qdrctjvevg4l\"},\"object\":{\"key\":\"private/wildlife.jpg\",\"size\":10516,\"eTag\":\"7f8ff04894fcc9b0c73b5d28404843a7\",\"sequencer\":\"006043C44D3316C8F8\"}}}]}",
+          "attributes": {
+              "ApproximateReceiveCount": "1",
+              "SentTimestamp": "1615053902609",
+              "SenderId": "AIDAJNNKV2HIAN5AMAKHG",
+              "ApproximateFirstReceiveTimestamp": "1615053902624"
+          },
+          "messageAttributes": {},
+          "md5OfBody": "4c4069f1c3ac95b39cfdc22d03bcbd4a",
+          "eventSource": "aws:sqs",
+          "eventSourceARN": "arn:aws:sqs:ap-south-1:785548451685:HomeLabs-PipBackend-Stack-queueserviceimageQueueB8061B72-QQSF31XBKBC3",
+          "awsRegion": "ap-south-1"
+      }
+  ]
+}

@@ -56,7 +56,7 @@ export class CognitoRole extends cdk.Construct {
         effect: _iam.Effect.ALLOW,
         actions: ["s3:GetObject", "s3:PutObject"],
         resources: [
-          `${imageBucket.bucketArn}/Private/` +
+          `${imageBucket.bucketArn}/private/` +
             "${cognito-identity.amazonaws.com:sub}/*",
         ],
       })
@@ -69,7 +69,7 @@ export class CognitoRole extends cdk.Construct {
         resources: [`${imageBucket.bucketArn}`],
         conditions: {
           StringLike: {
-            "s3:prefix": ["/Private/${cognito-identity.amazonaws.com:sub}/*"],
+            "s3:prefix": ["/private/${cognito-identity.amazonaws.com:sub}/*"],
           },
         },
       })

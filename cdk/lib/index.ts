@@ -1,13 +1,16 @@
 import * as cdk from "@aws-cdk/core";
 
 import * as _s3 from "@aws-cdk/aws-s3";
+import * as s3n from "@aws-cdk/aws-s3-notifications";
 import * as _dynamodb from "@aws-cdk/aws-dynamodb";
 import * as _lambda from "@aws-cdk/aws-lambda";
 import * as _lambdaEventSources from "@aws-cdk/aws-lambda-event-sources";
 import * as _iam from "@aws-cdk/aws-iam";
+import * as _logs from "@aws-cdk/aws-logs";
 
 import { ServiceApi } from "./serviceApi";
 import { Cognito } from "./cognito";
+import { QueueService } from "./queueService";
 
 export class HomeLabsPipBackendStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -49,13 +52,14 @@ export class HomeLabsPipBackendStack extends cdk.Stack {
         IMAGE_TABLE: imageTable.tableName,
       },
       layers: [rekLayer],
+      logRetention: _logs.RetentionDays.ONE_DAY,
     });
 
-    rekFn.addEventSource(
-      new _lambdaEventSources.S3EventSource(imageBucket, {
-        events: [_s3.EventType.OBJECT_CREATED],
-      })
-    );
+    // rekFn.addEventSource(
+    //   new _lambdaEventSources.S3EventSource(imageBucket, {
+    //     events: [_s3.EventType.OBJECT_CREATED],
+    //   })
+    // );
 
     imageBucket.grantRead(rekFn);
     imageTable.grantWriteData(rekFn);
@@ -80,6 +84,7 @@ export class HomeLabsPipBackendStack extends cdk.Stack {
         environment: {
           IMAGE_TABLE: imageTable.tableName,
         },
+        logRetention: _logs.RetentionDays.ONE_DAY,
       }
     );
 
@@ -98,6 +103,7 @@ export class HomeLabsPipBackendStack extends cdk.Stack {
           IMAGE_BUCKET: imageBucket.bucketName,
           IMAGE_TABLE: imageTable.tableName,
         },
+        logRetention: _logs.RetentionDays.ONE_DAY,
       }
     );
 
@@ -129,5 +135,20 @@ export class HomeLabsPipBackendStack extends cdk.Stack {
       },
       userPoolArns: [cognito.userPool.userPoolArn],
     });
+
+    // SQS
+    const imageQueue = new QueueService(this, "queue-service").imageQueue;
+
+    imageBucket.addEventNotification(
+      _s3.EventType.OBJECT_CREATED,
+      new s3n.SqsDestination(imageQueue),
+      { prefix: "private/" }
+    );
+
+    rekFn.addEventSource(
+      new _lambdaEventSources.SqsEventSource(imageQueue, {
+        batchSize: 10, // default
+      })
+    );
   }
 }

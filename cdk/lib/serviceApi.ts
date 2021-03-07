@@ -25,8 +25,8 @@ export class ServiceApi extends cdk.Construct {
       endpointTypes: [_apigw.EndpointType.REGIONAL],
       deployOptions: {
         stageName: "dev",
+        //loggingLevel:_apigw.MethodLoggingLevel.OFF
       },
-      restApiName: `homeLabs-pip-service-api`,
     });
 
     const apiAuthorizer = new _apigw.CfnAuthorizer(this, "service-api-auth", {

@@ -7,32 +7,40 @@ const rekognition = new AWS.Rekognition(),
 
 exports.run = async (event, context) => {
   try {
-    const records = event.Records;
+    const { Records: records = [] } = event;
 
-    for (let index = 0; index < records.length; index++) {
-      const record = records[index],
-        name = record.s3.bucket.name,
-        key = record.s3.object.key;
+    for (let idx = 0; idx < records.length; idx++) {
+      const record = records[idx],
+        body = JSON.parse(record.body) || { Records: [] },
+        bodyRecords = body.Records;
 
-      const labels = await detectImageLabels(name, key);
-      await saveImageLabels(key, labels.Labels);
+      for (let jdx = 0; jdx < bodyRecords.length; jdx++) {
+        const bodyRecord = bodyRecords[jdx];
+        let name = bodyRecord.s3.bucket.name,
+          key = bodyRecord.s3.object.key;
+
+        const labels = await detectImageLabels(name, key);
+        await saveImageLabels(key, labels.Labels);
+      }
     }
   } catch (err) {
-    console.log(err);
+    console.log("rekFn error ", err);
+    throw new Error(err);
   }
 };
 
 const detectImageLabels = async (name, key) => {
-  const request = {
-    Image: {
-      S3Object: {
-        Bucket: name,
-        Name: key,
+  let request = {
+      Image: {
+        S3Object: {
+          Bucket: name,
+          Name: key,
+        },
       },
+      MinConfidence: 80,
     },
-    MinConfidence: 80,
-  };
-  const labels = await rekognition.detectLabels(request).promise();
+    labels = [];
+  labels = await rekognition.detectLabels(request).promise();
   return labels;
 };
 
@@ -48,8 +56,4 @@ const saveImageLabels = async (key, labels) => {
   };
 
   await db.put(params).promise();
-};
-
-const serialize = (object) => {
-  return JSON.stringify(object, null, 2);
 };
