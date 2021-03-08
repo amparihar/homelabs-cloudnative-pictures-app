@@ -1,0 +1,2640 @@
+Resources:
+  imagebucketE8F90778:
+    Type: AWS::S3::Bucket
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/image-bucket/Resource
+  imagebucketNotifications564ACA7A:
+    Type: Custom::S3BucketNotifications
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691
+          - Arn
+      BucketName:
+        Ref: imagebucketE8F90778
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Events:
+              - s3:ObjectCreated:*
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: prefix
+                    Value: private/
+            QueueArn:
+              Fn::GetAtt:
+                - queueserviceimageQueueB8061B72
+                - Arn
+    DependsOn:
+      - queueserviceimageQueuePolicyE13BCF9D
+      - queueserviceimageQueueB8061B72
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/image-bucket/Notifications/Resource
+  imagetable98BCE2F6:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/image-table/Resource
+  imagefunctionlayerC8C0644E:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket:
+          Ref: AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3Bucket47884103
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3VersionKey64AF4A02
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3VersionKey64AF4A02
+      CompatibleRuntimes:
+        - nodejs12.x
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/image-function-layer/Resource
+      aws:asset:path: asset.be4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ff
+      aws:asset:property: Content
+  rekfunctionServiceRole857D67E2:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/ServiceRole/Resource
+  rekfunctionServiceRoleDefaultPolicy9728B2A6:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - imagebucketE8F90778
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - imagebucketE8F90778
+                        - Arn
+                    - /*
+          - Action:
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - imagetable98BCE2F6
+                  - Arn
+              - Ref: AWS::NoValue
+          - Action: rekognition:DetectLabels
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sqs:ReceiveMessage
+              - sqs:ChangeMessageVisibility
+              - sqs:GetQueueUrl
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - queueserviceimageQueueB8061B72
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: rekfunctionServiceRoleDefaultPolicy9728B2A6
+      Roles:
+        - Ref: rekfunctionServiceRole857D67E2
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/ServiceRole/DefaultPolicy/Resource
+  rekfunctionF6EF120B:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3Bucket1410584D
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3VersionKey1983D567
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3VersionKey1983D567
+      Role:
+        Fn::GetAtt:
+          - rekfunctionServiceRole857D67E2
+          - Arn
+      Environment:
+        Variables:
+          IMAGE_BUCKET:
+            Ref: imagebucketE8F90778
+          IMAGE_TABLE:
+            Ref: imagetable98BCE2F6
+      Handler: index.run
+      Layers:
+        - Ref: imagefunctionlayerC8C0644E
+      MemorySize: 1024
+      Runtime: nodejs12.x
+      Timeout: 30
+    DependsOn:
+      - rekfunctionServiceRoleDefaultPolicy9728B2A6
+      - rekfunctionServiceRole857D67E2
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/Resource
+      aws:asset:path: asset.743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7
+      aws:asset:property: Code
+  rekfunctionLogRetention58F06C59:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: rekfunctionF6EF120B
+      RetentionInDays: 1
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/LogRetention/Resource
+  rekfunctionSqsEventSourceHomeLabsPipBackendStackqueueserviceimageQueue459AD939E7C5C684:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName:
+        Ref: rekfunctionF6EF120B
+      BatchSize: 10
+      EventSourceArn:
+        Fn::GetAtt:
+          - queueserviceimageQueueB8061B72
+          - Arn
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/SqsEventSource:HomeLabsPipBackendStackqueueserviceimageQueue459AD939/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:PutRetentionPolicy
+              - logs:DeleteRetentionPolicy
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB
+      Roles:
+        - Ref: LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Code:
+        S3Bucket:
+          Ref: AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3Bucket4D46ABB5
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3VersionKeyB0F28861
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3VersionKeyB0F28861
+      Role:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+          - Arn
+    DependsOn:
+      - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB
+      - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource
+  getimageservicefunctionServiceRoleAD44D5CC:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/get-image-service-function/ServiceRole/Resource
+  getimageservicefunctionServiceRoleDefaultPolicy74E5E356:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - imagetable98BCE2F6
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: getimageservicefunctionServiceRoleDefaultPolicy74E5E356
+      Roles:
+        - Ref: getimageservicefunctionServiceRoleAD44D5CC
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/get-image-service-function/ServiceRole/DefaultPolicy/Resource
+  getimageservicefunctionA0D28021:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3Bucket53BD0626
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3VersionKey72B38F2E
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3VersionKey72B38F2E
+      Role:
+        Fn::GetAtt:
+          - getimageservicefunctionServiceRoleAD44D5CC
+          - Arn
+      Environment:
+        Variables:
+          IMAGE_TABLE:
+            Ref: imagetable98BCE2F6
+      Handler: index.run
+      MemorySize: 1024
+      Runtime: nodejs12.x
+      Timeout: 30
+    DependsOn:
+      - getimageservicefunctionServiceRoleDefaultPolicy74E5E356
+      - getimageservicefunctionServiceRoleAD44D5CC
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/get-image-service-function/Resource
+      aws:asset:path: asset.4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68
+      aws:asset:property: Code
+  getimageservicefunctionLogRetentionC55CB7BA:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: getimageservicefunctionA0D28021
+      RetentionInDays: 1
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/get-image-service-function/LogRetention/Resource
+  deleteimageservicefunctionServiceRoleB2CBFBF7:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/delete-image-service-function/ServiceRole/Resource
+  deleteimageservicefunctionServiceRoleDefaultPolicy15A58D28:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - imagetable98BCE2F6
+                  - Arn
+              - Ref: AWS::NoValue
+          - Action: s3:DeleteObject*
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - imagebucketE8F90778
+                      - Arn
+                  - /*
+        Version: "2012-10-17"
+      PolicyName: deleteimageservicefunctionServiceRoleDefaultPolicy15A58D28
+      Roles:
+        - Ref: deleteimageservicefunctionServiceRoleB2CBFBF7
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/delete-image-service-function/ServiceRole/DefaultPolicy/Resource
+  deleteimageservicefunction7BA9846D:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3Bucket387CE1B8
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3VersionKey11646178
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3VersionKey11646178
+      Role:
+        Fn::GetAtt:
+          - deleteimageservicefunctionServiceRoleB2CBFBF7
+          - Arn
+      Environment:
+        Variables:
+          IMAGE_BUCKET:
+            Ref: imagebucketE8F90778
+          IMAGE_TABLE:
+            Ref: imagetable98BCE2F6
+      Handler: index.run
+      MemorySize: 1024
+      Runtime: nodejs12.x
+      Timeout: 30
+    DependsOn:
+      - deleteimageservicefunctionServiceRoleDefaultPolicy15A58D28
+      - deleteimageservicefunctionServiceRoleB2CBFBF7
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/delete-image-service-function/Resource
+      aws:asset:path: asset.c0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735f
+      aws:asset:property: Code
+  deleteimageservicefunctionLogRetentionB347C595:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: deleteimageservicefunction7BA9846D
+      RetentionInDays: 1
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/delete-image-service-function/LogRetention/Resource
+  cognitoconstructuserpool7FE8E0EE:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_phone_number
+            Priority: 1
+          - Name: verified_email
+            Priority: 2
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AliasAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      EmailVerificationMessage: The verification code to your new account is {####}
+      EmailVerificationSubject: Verify your new account
+      SmsVerificationMessage: The verification code to your new account is {####}
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+        EmailMessage: The verification code to your new account is {####}
+        EmailSubject: Verify your new account
+        SmsMessage: The verification code to your new account is {####}
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/user-pool/Resource
+  cognitoconstructuserpoolclient83626E74:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: cognitoconstructuserpool7FE8E0EE
+      AllowedOAuthFlows:
+        - implicit
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - profile
+        - phone
+        - email
+        - openid
+        - aws.cognito.signin.user.admin
+      CallbackURLs:
+        - https://example.com
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - COGNITO
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/user-pool-client/Resource
+  cognitoconstructidentitypool43E0CD8B:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId:
+            Ref: cognitoconstructuserpoolclient83626E74
+          ProviderName:
+            Fn::GetAtt:
+              - cognitoconstructuserpool7FE8E0EE
+              - ProviderName
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/identity-pool
+  cognitoconstructauthenticatedroleidentityroleAA939C83:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws:aud:
+                  - Ref: cognitoconstructidentitypool43E0CD8B
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws:amr: authenticated
+            Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/authenticated-role/identity_role/Resource
+  cognitoconstructauthenticatedroleidentityroleDefaultPolicy8F61E6F1:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject
+              - s3:PutObject
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - imagebucketE8F90778
+                      - Arn
+                  - /private/${cognito-identity.amazonaws.com:sub}/*
+          - Action: s3:ListBucket
+            Condition:
+              StringLike:
+                s3:prefix:
+                  - /private/${cognito-identity.amazonaws.com:sub}/*
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - imagebucketE8F90778
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: cognitoconstructauthenticatedroleidentityroleDefaultPolicy8F61E6F1
+      Roles:
+        - Ref: cognitoconstructauthenticatedroleidentityroleAA939C83
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/authenticated-role/identity_role/DefaultPolicy/Resource
+  cognitoconstructIdentityPoolRoleAttachment6E561C19:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId:
+        Ref: cognitoconstructidentitypool43E0CD8B
+      Roles:
+        authenticated:
+          Fn::GetAtt:
+            - cognitoconstructauthenticatedroleidentityroleAA939C83
+            - Arn
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/IdentityPool-Role-Attachment
+  apiconstructimageserviceapi2C3AD82E:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: Service api for image operations
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Name: image-service-api
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Resource
+  apiconstructimageserviceapiCloudWatchRoleC2690D98:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/CloudWatchRole/Resource
+  apiconstructimageserviceapiAccountC5BEB6E9:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - apiconstructimageserviceapiCloudWatchRoleC2690D98
+          - Arn
+    DependsOn:
+      - apiconstructimageserviceapi2C3AD82E
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Account
+  apiconstructimageserviceapiDeployment05E4C7E4944e06903259d6675bcfbf9704ec5a05:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - apiconstructimageserviceapi4XX7B36DE2A
+      - apiconstructimageserviceapiimageDELETE54CBFB17
+      - apiconstructimageserviceapiimageOPTIONS5AD15770
+      - apiconstructimageserviceapiimagePOSTA1DCFA40
+      - apiconstructimageserviceapiimageF326990C
+      - apiconstructimageserviceapivalidator1C7B45F2
+      - apiconstructquerystringrequestvalidator160DF6C0
+      - apiconstructserviceApirequestMappingmodelB162D429
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Deployment/Resource
+  apiconstructimageserviceapiDeploymentStagedev72788E2C:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      DeploymentId:
+        Ref: apiconstructimageserviceapiDeployment05E4C7E4944e06903259d6675bcfbf9704ec5a05
+      StageName: dev
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/DeploymentStage.dev/Resource
+  apiconstructimageserviceapiimageF326990C:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - apiconstructimageserviceapi2C3AD82E
+          - RootResourceId
+      PathPart: image
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/Resource
+  apiconstructimageserviceapiimageOPTIONS5AD15770:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: OPTIONS
+      ResourceId:
+        Ref: apiconstructimageserviceapiimageF326990C
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      AuthorizationType: NONE
+      Integration:
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+            StatusCode: "200"
+        RequestTemplates:
+          application/json: "{ statusCode: 200 }"
+        Type: MOCK
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+          StatusCode: "200"
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/OPTIONS/Resource
+  apiconstructimageserviceapiimagePOSTApiPermissionHomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7POSTimage5E1D39D0:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - getimageservicefunctionA0D28021
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: apiconstructimageserviceapi2C3AD82E
+            - /
+            - Ref: apiconstructimageserviceapiDeploymentStagedev72788E2C
+            - /POST/image
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/POST/ApiPermission.HomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7.POST..image
+  apiconstructimageserviceapiimagePOSTApiPermissionTestHomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7POSTimageC3D3323E:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - getimageservicefunctionA0D28021
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: apiconstructimageserviceapi2C3AD82E
+            - /test-invoke-stage/POST/image
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/POST/ApiPermission.Test.HomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7.POST..image
+  apiconstructimageserviceapiimagePOSTA1DCFA40:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId:
+        Ref: apiconstructimageserviceapiimageF326990C
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: apiconstructserviceapiauth5A1F7390
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: '{"status": "Ok", "data": $util.parseJson($input.body)}'
+            StatusCode: "200"
+          - ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{\"status\":\"Error\",\"result\":\"$util.escapeJavaScript($input.path('$.errorMessage'))\"}"
+            SelectionPattern: >-
+              (
+
+              |.)+
+            StatusCode: "500"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+          application/json: >-
+            #set($root = $input.path('$'))
+                        {
+                          "imageId":"$root.id"
+                        }
+        Type: AWS
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - getimageservicefunctionA0D28021
+                  - Arn
+              - /invocations
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "200"
+        - ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "500"
+      RequestModels:
+        application/json:
+          Ref: apiconstructserviceApirequestMappingmodelB162D429
+      RequestValidatorId:
+        Ref: apiconstructimageserviceapivalidator1C7B45F2
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/POST/Resource
+  apiconstructimageserviceapiimageDELETEApiPermissionHomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7DELETEimage65E4C49C:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - deleteimageservicefunction7BA9846D
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: apiconstructimageserviceapi2C3AD82E
+            - /
+            - Ref: apiconstructimageserviceapiDeploymentStagedev72788E2C
+            - /DELETE/image
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/DELETE/ApiPermission.HomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7.DELETE..image
+  apiconstructimageserviceapiimageDELETEApiPermissionTestHomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7DELETEimageDCA4F46B:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - deleteimageservicefunction7BA9846D
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: apiconstructimageserviceapi2C3AD82E
+            - /test-invoke-stage/DELETE/image
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/DELETE/ApiPermission.Test.HomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7.DELETE..image
+  apiconstructimageserviceapiimageDELETE54CBFB17:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: DELETE
+      ResourceId:
+        Ref: apiconstructimageserviceapiimageF326990C
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: apiconstructserviceapiauth5A1F7390
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: '{"status": "Ok", "data": $util.parseJson($input.body)}'
+            StatusCode: "200"
+          - ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{\"status\":\"Error\",\"result\":\"$util.escapeJavaScript($input.path('$.errorMessage'))\"}"
+            SelectionPattern: >-
+              (
+
+              |.)+
+            StatusCode: "500"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.querystring.id: method.request.querystring.id
+        RequestTemplates:
+          application/json: >-2
+            
+                        {
+                          "imageId":"$input.params('id')"
+                        }
+        Type: AWS
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - deleteimageservicefunction7BA9846D
+                  - Arn
+              - /invocations
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "200"
+        - ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "500"
+      RequestParameters:
+        method.request.querystring.id: true
+      RequestValidatorId:
+        Ref: apiconstructquerystringrequestvalidator160DF6C0
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/DELETE/Resource
+  apiconstructimageserviceapi4XX7B36DE2A:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      ResponseType: DEFAULT_4XX
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/4XX/Resource
+  apiconstructimageserviceapivalidator1C7B45F2:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      Name: get-image-request-body-validator
+      ValidateRequestBody: true
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/validator/Resource
+  apiconstructserviceapiauth5A1F7390:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      Name: service-api-authorizer
+      ProviderARNs:
+        - Fn::GetAtt:
+            - cognitoconstructuserpool7FE8E0EE
+            - Arn
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/service-api-auth
+  apiconstructserviceApirequestMappingmodelB162D429:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      ContentType: application/json
+      Name: GetImageServiceApiRequestValidationModel
+      Schema:
+        $schema: http://json-schema.org/draft-04/schema#
+        type: object
+        properties:
+          id:
+            type: string
+            minLength: 1
+        required:
+          - id
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/serviceApi-requestMapping-model/Resource
+  apiconstructquerystringrequestvalidator160DF6C0:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      Name: querystring-request-validator
+      ValidateRequestParameters: true
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/querystring-request-validator/Resource
+  queueservicedlImageQueue37A4C680:
+    Type: AWS::SQS::Queue
+    Properties:
+      ReceiveMessageWaitTimeSeconds: 20
+      VisibilityTimeout: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/queue-service/dlImageQueue/Resource
+  queueserviceimageQueueB8061B72:
+    Type: AWS::SQS::Queue
+    Properties:
+      ReceiveMessageWaitTimeSeconds: 20
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - queueservicedlImageQueue37A4C680
+            - Arn
+        maxReceiveCount: 2
+      VisibilityTimeout: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/queue-service/imageQueue/Resource
+  queueserviceimageQueuePolicyE13BCF9D:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+            Condition:
+              ArnLike:
+                aws:SourceArn:
+                  Fn::GetAtt:
+                    - imagebucketE8F90778
+                    - Arn
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Resource:
+              Fn::GetAtt:
+                - queueserviceimageQueueB8061B72
+                - Arn
+        Version: "2012-10-17"
+      Queues:
+        - Ref: queueserviceimageQueueB8061B72
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/queue-service/imageQueue/Policy/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: s3:PutBucketNotification
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36
+      Roles:
+        - Ref: BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: AWS CloudFormation handler for "Custom::S3BucketNotifications" resources (@aws-cdk/aws-s3)
+      Code:
+        ZipFile: >-
+          exports.handler = (event, context) => {
+              // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-extraneous-dependencies
+              const s3 = new (require('aws-sdk').S3)();
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              const https = require('https');
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              const url = require('url');
+              log(JSON.stringify(event, undefined, 2));
+              const props = event.ResourceProperties;
+              if (event.RequestType === 'Delete') {
+                  props.NotificationConfiguration = {}; // this is how you clean out notifications
+              }
+              const req = {
+                  Bucket: props.BucketName,
+                  NotificationConfiguration: props.NotificationConfiguration,
+              };
+              return s3.putBucketNotificationConfiguration(req, (err, data) => {
+                  log({ err, data });
+                  if (err) {
+                      return submitResponse('FAILED', err.message + `\nMore information in CloudWatch Log Stream: ${context.logStreamName}`);
+                  }
+                  else {
+                      return submitResponse('SUCCESS');
+                  }
+              });
+              function log(obj) {
+                  console.error(event.RequestId, event.StackId, event.LogicalResourceId, obj);
+              }
+              // eslint-disable-next-line max-len
+              // adapted from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-cfnresponsemodule
+              // to allow sending an error message as a reason.
+              function submitResponse(responseStatus, reason) {
+                  const responseBody = JSON.stringify({
+                      Status: responseStatus,
+                      Reason: reason || 'See the details in CloudWatch Log Stream: ' + context.logStreamName,
+                      PhysicalResourceId: event.PhysicalResourceId || event.LogicalResourceId,
+                      StackId: event.StackId,
+                      RequestId: event.RequestId,
+                      LogicalResourceId: event.LogicalResourceId,
+                      NoEcho: false,
+                  });
+                  log({ responseBody });
+                  const parsedUrl = url.parse(event.ResponseURL);
+                  const options = {
+                      hostname: parsedUrl.hostname,
+                      port: 443,
+                      path: parsedUrl.path,
+                      method: 'PUT',
+                      headers: {
+                          'content-type': '',
+                          'content-length': responseBody.length,
+                      },
+                  };
+                  const request = https.request(options, (r) => {
+                      log({ statusCode: r.statusCode, statusMessage: r.statusMessage });
+                      context.done();
+                  });
+                  request.on('error', (error) => {
+                      log({ sendError: error });
+                      context.done();
+                  });
+                  request.write(responseBody);
+                  request.end();
+              }
+          };
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+          - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+          - Arn
+      Runtime: nodejs10.x
+      Timeout: 300
+    DependsOn:
+      - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36
+      - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=1.91.0,@aws-cdk/assets=1.92.0,@aws-cdk/aws-apigateway=1.91.0,@aws-cdk/aws-applicationautoscaling=1.91.0,@aws-cdk/aws-autoscaling-common=1.91.0,@aws-cdk/aws-cloudwatch=1.92.0,@aws-cdk/aws-codeguruprofiler=1.91.0,@aws-cdk/aws-cognito=1.91.0,@aws-cdk/aws-dynamodb=1.91.0,@aws-cdk/aws-ec2=1.91.0,@aws-cdk/aws-ecr=1.91.0,@aws-cdk/aws-ecr-assets=1.91.0,@aws-cdk/aws-events=1.92.0,@aws-cdk/aws-iam=1.92.0,@aws-cdk/aws-kms=1.92.0,@aws-cdk/aws-lambda=1.91.0,@aws-cdk/aws-lambda-event-sources=1.91.0,@aws-cdk/aws-logs=1.92.0,@aws-cdk/aws-s3=1.92.0,@aws-cdk/aws-s3-assets=1.92.0,@aws-cdk/aws-s3-notifications=1.91.0,@aws-cdk/aws-sns=1.91.0,@aws-cdk/aws-sns-subscriptions=1.91.0,@aws-cdk/aws-sqs=1.91.0,@aws-cdk/aws-ssm=1.91.0,@aws-cdk/cloud-assembly-schema=1.92.0,@aws-cdk/core=1.92.0,@aws-cdk/custom-resources=1.91.0,@aws-cdk/cx-api=1.92.0,@aws-cdk/region-info=1.92.0,jsii-runtime=node.js/v12.20.1
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Outputs:
+  imagebucketname:
+    Value:
+      Ref: imagebucketE8F90778
+  imagetablename:
+    Value:
+      Ref: imagetable98BCE2F6
+  cognitoconstructUserPoolId44331CD4:
+    Value:
+      Ref: cognitoconstructuserpool7FE8E0EE
+  cognitoconstructUserPoolClientId0BFF2D65:
+    Value:
+      Ref: cognitoconstructuserpoolclient83626E74
+  cognitoconstructIdentityPoolIdF9C8AFF7:
+    Value:
+      Ref: cognitoconstructidentitypool43E0CD8B
+  apiconstructimageserviceapiEndpoint2BB13EF1:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: apiconstructimageserviceapi2C3AD82E
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: apiconstructimageserviceapiDeploymentStagedev72788E2C
+          - /
+Parameters:
+  AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3Bucket47884103:
+    Type: String
+    Description: S3 bucket for asset "be4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ff"
+  AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3VersionKey64AF4A02:
+    Type: String
+    Description: S3 key for asset version "be4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ff"
+  AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffArtifactHashA31A32A3:
+    Type: String
+    Description: Artifact hash for asset "be4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ff"
+  AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3Bucket1410584D:
+    Type: String
+    Description: S3 bucket for asset "743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7"
+  AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3VersionKey1983D567:
+    Type: String
+    Description: S3 key for asset version "743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7"
+  AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7ArtifactHash63962D20:
+    Type: String
+    Description: Artifact hash for asset "743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7"
+  AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3Bucket4D46ABB5:
+    Type: String
+    Description: S3 bucket for asset "67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24"
+  AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3VersionKeyB0F28861:
+    Type: String
+    Description: S3 key for asset version "67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24"
+  AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24ArtifactHashBA91B77F:
+    Type: String
+    Description: Artifact hash for asset "67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24"
+  AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3Bucket53BD0626:
+    Type: String
+    Description: S3 bucket for asset "4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68"
+  AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3VersionKey72B38F2E:
+    Type: String
+    Description: S3 key for asset version "4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68"
+  AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68ArtifactHashC7F80E99:
+    Type: String
+    Description: Artifact hash for asset "4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68"
+  AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3Bucket387CE1B8:
+    Type: String
+    Description: S3 bucket for asset "c0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735f"
+  AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3VersionKey11646178:
+    Type: String
+    Description: S3 key for asset version "c0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735f"
+  AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fArtifactHashE2F18BD4:
+    Type: String
+    Description: Artifact hash for asset "c0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735f"
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+
+Resources:
+  imagebucketE8F90778:
+    Type: AWS::S3::Bucket
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/image-bucket/Resource
+  imagebucketNotifications564ACA7A:
+    Type: Custom::S3BucketNotifications
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691
+          - Arn
+      BucketName:
+        Ref: imagebucketE8F90778
+      NotificationConfiguration:
+        QueueConfigurations:
+          - Events:
+              - s3:ObjectCreated:*
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: prefix
+                    Value: private/
+            QueueArn:
+              Fn::GetAtt:
+                - queueserviceimageQueueB8061B72
+                - Arn
+    DependsOn:
+      - queueserviceimageQueuePolicyE13BCF9D
+      - queueserviceimageQueueB8061B72
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/image-bucket/Notifications/Resource
+  imagetable98BCE2F6:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/image-table/Resource
+  imagefunctionlayerC8C0644E:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket:
+          Ref: AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3Bucket47884103
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3VersionKey64AF4A02
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3VersionKey64AF4A02
+      CompatibleRuntimes:
+        - nodejs12.x
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/image-function-layer/Resource
+      aws:asset:path: asset.be4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ff
+      aws:asset:property: Content
+  rekfunctionServiceRole857D67E2:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/ServiceRole/Resource
+  rekfunctionServiceRoleDefaultPolicy9728B2A6:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject*
+              - s3:GetBucket*
+              - s3:List*
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - imagebucketE8F90778
+                  - Arn
+              - Fn::Join:
+                  - ""
+                  - - Fn::GetAtt:
+                        - imagebucketE8F90778
+                        - Arn
+                    - /*
+          - Action:
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - imagetable98BCE2F6
+                  - Arn
+              - Ref: AWS::NoValue
+          - Action: rekognition:DetectLabels
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - sqs:ReceiveMessage
+              - sqs:ChangeMessageVisibility
+              - sqs:GetQueueUrl
+              - sqs:DeleteMessage
+              - sqs:GetQueueAttributes
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - queueserviceimageQueueB8061B72
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: rekfunctionServiceRoleDefaultPolicy9728B2A6
+      Roles:
+        - Ref: rekfunctionServiceRole857D67E2
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/ServiceRole/DefaultPolicy/Resource
+  rekfunctionF6EF120B:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3Bucket1410584D
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3VersionKey1983D567
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3VersionKey1983D567
+      Role:
+        Fn::GetAtt:
+          - rekfunctionServiceRole857D67E2
+          - Arn
+      Environment:
+        Variables:
+          IMAGE_BUCKET:
+            Ref: imagebucketE8F90778
+          IMAGE_TABLE:
+            Ref: imagetable98BCE2F6
+      Handler: index.run
+      Layers:
+        - Ref: imagefunctionlayerC8C0644E
+      MemorySize: 1024
+      Runtime: nodejs12.x
+      Timeout: 30
+    DependsOn:
+      - rekfunctionServiceRoleDefaultPolicy9728B2A6
+      - rekfunctionServiceRole857D67E2
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/Resource
+      aws:asset:path: asset.743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7
+      aws:asset:property: Code
+  rekfunctionLogRetention58F06C59:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: rekfunctionF6EF120B
+      RetentionInDays: 1
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/LogRetention/Resource
+  rekfunctionSqsEventSourceHomeLabsPipBackendStackqueueserviceimageQueue459AD939E7C5C684:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName:
+        Ref: rekfunctionF6EF120B
+      BatchSize: 10
+      EventSourceArn:
+        Fn::GetAtt:
+          - queueserviceimageQueueB8061B72
+          - Arn
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/rek-function/SqsEventSource:HomeLabsPipBackendStackqueueserviceimageQueue459AD939/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:PutRetentionPolicy
+              - logs:DeleteRetentionPolicy
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB
+      Roles:
+        - Ref: LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Code:
+        S3Bucket:
+          Ref: AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3Bucket4D46ABB5
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3VersionKeyB0F28861
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3VersionKeyB0F28861
+      Role:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+          - Arn
+    DependsOn:
+      - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB
+      - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource
+  getimageservicefunctionServiceRoleAD44D5CC:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/get-image-service-function/ServiceRole/Resource
+  getimageservicefunctionServiceRoleDefaultPolicy74E5E356:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - imagetable98BCE2F6
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: getimageservicefunctionServiceRoleDefaultPolicy74E5E356
+      Roles:
+        - Ref: getimageservicefunctionServiceRoleAD44D5CC
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/get-image-service-function/ServiceRole/DefaultPolicy/Resource
+  getimageservicefunctionA0D28021:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3Bucket53BD0626
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3VersionKey72B38F2E
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3VersionKey72B38F2E
+      Role:
+        Fn::GetAtt:
+          - getimageservicefunctionServiceRoleAD44D5CC
+          - Arn
+      Environment:
+        Variables:
+          IMAGE_TABLE:
+            Ref: imagetable98BCE2F6
+      Handler: index.run
+      MemorySize: 1024
+      Runtime: nodejs12.x
+      Timeout: 30
+    DependsOn:
+      - getimageservicefunctionServiceRoleDefaultPolicy74E5E356
+      - getimageservicefunctionServiceRoleAD44D5CC
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/get-image-service-function/Resource
+      aws:asset:path: asset.4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68
+      aws:asset:property: Code
+  getimageservicefunctionLogRetentionC55CB7BA:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: getimageservicefunctionA0D28021
+      RetentionInDays: 1
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/get-image-service-function/LogRetention/Resource
+  deleteimageservicefunctionServiceRoleB2CBFBF7:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/delete-image-service-function/ServiceRole/Resource
+  deleteimageservicefunctionServiceRoleDefaultPolicy15A58D28:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - imagetable98BCE2F6
+                  - Arn
+              - Ref: AWS::NoValue
+          - Action: s3:DeleteObject*
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - imagebucketE8F90778
+                      - Arn
+                  - /*
+        Version: "2012-10-17"
+      PolicyName: deleteimageservicefunctionServiceRoleDefaultPolicy15A58D28
+      Roles:
+        - Ref: deleteimageservicefunctionServiceRoleB2CBFBF7
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/delete-image-service-function/ServiceRole/DefaultPolicy/Resource
+  deleteimageservicefunction7BA9846D:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket:
+          Ref: AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3Bucket387CE1B8
+        S3Key:
+          Fn::Join:
+            - ""
+            - - Fn::Select:
+                  - 0
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3VersionKey11646178
+              - Fn::Select:
+                  - 1
+                  - Fn::Split:
+                      - "||"
+                      - Ref: AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3VersionKey11646178
+      Role:
+        Fn::GetAtt:
+          - deleteimageservicefunctionServiceRoleB2CBFBF7
+          - Arn
+      Environment:
+        Variables:
+          IMAGE_BUCKET:
+            Ref: imagebucketE8F90778
+          IMAGE_TABLE:
+            Ref: imagetable98BCE2F6
+      Handler: index.run
+      MemorySize: 1024
+      Runtime: nodejs12.x
+      Timeout: 30
+    DependsOn:
+      - deleteimageservicefunctionServiceRoleDefaultPolicy15A58D28
+      - deleteimageservicefunctionServiceRoleB2CBFBF7
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/delete-image-service-function/Resource
+      aws:asset:path: asset.c0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735f
+      aws:asset:property: Code
+  deleteimageservicefunctionLogRetentionB347C595:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: deleteimageservicefunction7BA9846D
+      RetentionInDays: 1
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/delete-image-service-function/LogRetention/Resource
+  cognitoconstructuserpool7FE8E0EE:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_phone_number
+            Priority: 1
+          - Name: verified_email
+            Priority: 2
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AliasAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      EmailVerificationMessage: The verification code to your new account is {####}
+      EmailVerificationSubject: Verify your new account
+      SmsVerificationMessage: The verification code to your new account is {####}
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+        EmailMessage: The verification code to your new account is {####}
+        EmailSubject: Verify your new account
+        SmsMessage: The verification code to your new account is {####}
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/user-pool/Resource
+  cognitoconstructuserpoolclient83626E74:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: cognitoconstructuserpool7FE8E0EE
+      AllowedOAuthFlows:
+        - implicit
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - profile
+        - phone
+        - email
+        - openid
+        - aws.cognito.signin.user.admin
+      CallbackURLs:
+        - https://example.com
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - COGNITO
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/user-pool-client/Resource
+  cognitoconstructidentitypool43E0CD8B:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId:
+            Ref: cognitoconstructuserpoolclient83626E74
+          ProviderName:
+            Fn::GetAtt:
+              - cognitoconstructuserpool7FE8E0EE
+              - ProviderName
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/identity-pool
+  cognitoconstructauthenticatedroleidentityroleAA939C83:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws:aud:
+                  - Ref: cognitoconstructidentitypool43E0CD8B
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws:amr: authenticated
+            Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+        Version: "2012-10-17"
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/authenticated-role/identity_role/Resource
+  cognitoconstructauthenticatedroleidentityroleDefaultPolicy8F61E6F1:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:GetObject
+              - s3:PutObject
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - imagebucketE8F90778
+                      - Arn
+                  - /private/${cognito-identity.amazonaws.com:sub}/*
+          - Action: s3:ListBucket
+            Condition:
+              StringLike:
+                s3:prefix:
+                  - /private/${cognito-identity.amazonaws.com:sub}/*
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - imagebucketE8F90778
+                - Arn
+        Version: "2012-10-17"
+      PolicyName: cognitoconstructauthenticatedroleidentityroleDefaultPolicy8F61E6F1
+      Roles:
+        - Ref: cognitoconstructauthenticatedroleidentityroleAA939C83
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/authenticated-role/identity_role/DefaultPolicy/Resource
+  cognitoconstructIdentityPoolRoleAttachment6E561C19:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId:
+        Ref: cognitoconstructidentitypool43E0CD8B
+      Roles:
+        authenticated:
+          Fn::GetAtt:
+            - cognitoconstructauthenticatedroleidentityroleAA939C83
+            - Arn
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/cognito-construct/IdentityPool-Role-Attachment
+  apiconstructimageserviceapi2C3AD82E:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: Service api for image operations
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Name: image-service-api
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Resource
+  apiconstructimageserviceapiCloudWatchRoleC2690D98:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/CloudWatchRole/Resource
+  apiconstructimageserviceapiAccountC5BEB6E9:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - apiconstructimageserviceapiCloudWatchRoleC2690D98
+          - Arn
+    DependsOn:
+      - apiconstructimageserviceapi2C3AD82E
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Account
+  apiconstructimageserviceapiDeployment05E4C7E4944e06903259d6675bcfbf9704ec5a05:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - apiconstructimageserviceapi4XX7B36DE2A
+      - apiconstructimageserviceapiimageDELETE54CBFB17
+      - apiconstructimageserviceapiimageOPTIONS5AD15770
+      - apiconstructimageserviceapiimagePOSTA1DCFA40
+      - apiconstructimageserviceapiimageF326990C
+      - apiconstructimageserviceapivalidator1C7B45F2
+      - apiconstructquerystringrequestvalidator160DF6C0
+      - apiconstructserviceApirequestMappingmodelB162D429
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Deployment/Resource
+  apiconstructimageserviceapiDeploymentStagedev72788E2C:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      DeploymentId:
+        Ref: apiconstructimageserviceapiDeployment05E4C7E4944e06903259d6675bcfbf9704ec5a05
+      StageName: dev
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/DeploymentStage.dev/Resource
+  apiconstructimageserviceapiimageF326990C:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - apiconstructimageserviceapi2C3AD82E
+          - RootResourceId
+      PathPart: image
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/Resource
+  apiconstructimageserviceapiimageOPTIONS5AD15770:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: OPTIONS
+      ResourceId:
+        Ref: apiconstructimageserviceapiimageF326990C
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      AuthorizationType: NONE
+      Integration:
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+            StatusCode: "200"
+        RequestTemplates:
+          application/json: "{ statusCode: 200 }"
+        Type: MOCK
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+          StatusCode: "200"
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/OPTIONS/Resource
+  apiconstructimageserviceapiimagePOSTApiPermissionHomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7POSTimage5E1D39D0:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - getimageservicefunctionA0D28021
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: apiconstructimageserviceapi2C3AD82E
+            - /
+            - Ref: apiconstructimageserviceapiDeploymentStagedev72788E2C
+            - /POST/image
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/POST/ApiPermission.HomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7.POST..image
+  apiconstructimageserviceapiimagePOSTApiPermissionTestHomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7POSTimageC3D3323E:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - getimageservicefunctionA0D28021
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: apiconstructimageserviceapi2C3AD82E
+            - /test-invoke-stage/POST/image
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/POST/ApiPermission.Test.HomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7.POST..image
+  apiconstructimageserviceapiimagePOSTA1DCFA40:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: POST
+      ResourceId:
+        Ref: apiconstructimageserviceapiimageF326990C
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: apiconstructserviceapiauth5A1F7390
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: '{"status": "Ok", "data": $util.parseJson($input.body)}'
+            StatusCode: "200"
+          - ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{\"status\":\"Error\",\"result\":\"$util.escapeJavaScript($input.path('$.errorMessage'))\"}"
+            SelectionPattern: >-
+              (
+
+              |.)+
+            StatusCode: "500"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestTemplates:
+          application/json: >-
+            #set($root = $input.path('$'))
+                        {
+                          "imageId":"$root.id"
+                        }
+        Type: AWS
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - getimageservicefunctionA0D28021
+                  - Arn
+              - /invocations
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "200"
+        - ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "500"
+      RequestModels:
+        application/json:
+          Ref: apiconstructserviceApirequestMappingmodelB162D429
+      RequestValidatorId:
+        Ref: apiconstructimageserviceapivalidator1C7B45F2
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/POST/Resource
+  apiconstructimageserviceapiimageDELETEApiPermissionHomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7DELETEimage65E4C49C:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - deleteimageservicefunction7BA9846D
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: apiconstructimageserviceapi2C3AD82E
+            - /
+            - Ref: apiconstructimageserviceapiDeploymentStagedev72788E2C
+            - /DELETE/image
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/DELETE/ApiPermission.HomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7.DELETE..image
+  apiconstructimageserviceapiimageDELETEApiPermissionTestHomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7DELETEimageDCA4F46B:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - deleteimageservicefunction7BA9846D
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: apiconstructimageserviceapi2C3AD82E
+            - /test-invoke-stage/DELETE/image
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/DELETE/ApiPermission.Test.HomeLabsPipBackendStackapiconstructimageserviceapiC964EAD7.DELETE..image
+  apiconstructimageserviceapiimageDELETE54CBFB17:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: DELETE
+      ResourceId:
+        Ref: apiconstructimageserviceapiimageF326990C
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: apiconstructserviceapiauth5A1F7390
+      Integration:
+        IntegrationHttpMethod: POST
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: '{"status": "Ok", "data": $util.parseJson($input.body)}'
+            StatusCode: "200"
+          - ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: "{\"status\":\"Error\",\"result\":\"$util.escapeJavaScript($input.path('$.errorMessage'))\"}"
+            SelectionPattern: >-
+              (
+
+              |.)+
+            StatusCode: "500"
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.querystring.id: method.request.querystring.id
+        RequestTemplates:
+          application/json: >-2
+            
+                        {
+                          "imageId":"$input.params('id')"
+                        }
+        Type: AWS
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - deleteimageservicefunction7BA9846D
+                  - Arn
+              - /invocations
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "200"
+        - ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+          StatusCode: "500"
+      RequestParameters:
+        method.request.querystring.id: true
+      RequestValidatorId:
+        Ref: apiconstructquerystringrequestvalidator160DF6C0
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/Default/image/DELETE/Resource
+  apiconstructimageserviceapi4XX7B36DE2A:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      ResponseType: DEFAULT_4XX
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/4XX/Resource
+  apiconstructimageserviceapivalidator1C7B45F2:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      Name: get-image-request-body-validator
+      ValidateRequestBody: true
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/image-service-api/validator/Resource
+  apiconstructserviceapiauth5A1F7390:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      Name: service-api-authorizer
+      ProviderARNs:
+        - Fn::GetAtt:
+            - cognitoconstructuserpool7FE8E0EE
+            - Arn
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/service-api-auth
+  apiconstructserviceApirequestMappingmodelB162D429:
+    Type: AWS::ApiGateway::Model
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      ContentType: application/json
+      Name: GetImageServiceApiRequestValidationModel
+      Schema:
+        $schema: http://json-schema.org/draft-04/schema#
+        type: object
+        properties:
+          id:
+            type: string
+            minLength: 1
+        required:
+          - id
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/serviceApi-requestMapping-model/Resource
+  apiconstructquerystringrequestvalidator160DF6C0:
+    Type: AWS::ApiGateway::RequestValidator
+    Properties:
+      RestApiId:
+        Ref: apiconstructimageserviceapi2C3AD82E
+      Name: querystring-request-validator
+      ValidateRequestParameters: true
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/api-construct/querystring-request-validator/Resource
+  queueservicedlImageQueue37A4C680:
+    Type: AWS::SQS::Queue
+    Properties:
+      ReceiveMessageWaitTimeSeconds: 20
+      VisibilityTimeout: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/queue-service/dlImageQueue/Resource
+  queueserviceimageQueueB8061B72:
+    Type: AWS::SQS::Queue
+    Properties:
+      ReceiveMessageWaitTimeSeconds: 20
+      RedrivePolicy:
+        deadLetterTargetArn:
+          Fn::GetAtt:
+            - queueservicedlImageQueue37A4C680
+            - Arn
+        maxReceiveCount: 2
+      VisibilityTimeout: 30
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/queue-service/imageQueue/Resource
+  queueserviceimageQueuePolicyE13BCF9D:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:GetQueueUrl
+            Condition:
+              ArnLike:
+                aws:SourceArn:
+                  Fn::GetAtt:
+                    - imagebucketE8F90778
+                    - Arn
+            Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Resource:
+              Fn::GetAtt:
+                - queueserviceimageQueueB8061B72
+                - Arn
+        Version: "2012-10-17"
+      Queues:
+        - Ref: queueserviceimageQueueB8061B72
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/queue-service/imageQueue/Policy/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: s3:PutBucketNotification
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36
+      Roles:
+        - Ref: BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource
+  BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: AWS CloudFormation handler for "Custom::S3BucketNotifications" resources (@aws-cdk/aws-s3)
+      Code:
+        ZipFile: >-
+          exports.handler = (event, context) => {
+              // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-extraneous-dependencies
+              const s3 = new (require('aws-sdk').S3)();
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              const https = require('https');
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              const url = require('url');
+              log(JSON.stringify(event, undefined, 2));
+              const props = event.ResourceProperties;
+              if (event.RequestType === 'Delete') {
+                  props.NotificationConfiguration = {}; // this is how you clean out notifications
+              }
+              const req = {
+                  Bucket: props.BucketName,
+                  NotificationConfiguration: props.NotificationConfiguration,
+              };
+              return s3.putBucketNotificationConfiguration(req, (err, data) => {
+                  log({ err, data });
+                  if (err) {
+                      return submitResponse('FAILED', err.message + `\nMore information in CloudWatch Log Stream: ${context.logStreamName}`);
+                  }
+                  else {
+                      return submitResponse('SUCCESS');
+                  }
+              });
+              function log(obj) {
+                  console.error(event.RequestId, event.StackId, event.LogicalResourceId, obj);
+              }
+              // eslint-disable-next-line max-len
+              // adapted from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-cfnresponsemodule
+              // to allow sending an error message as a reason.
+              function submitResponse(responseStatus, reason) {
+                  const responseBody = JSON.stringify({
+                      Status: responseStatus,
+                      Reason: reason || 'See the details in CloudWatch Log Stream: ' + context.logStreamName,
+                      PhysicalResourceId: event.PhysicalResourceId || event.LogicalResourceId,
+                      StackId: event.StackId,
+                      RequestId: event.RequestId,
+                      LogicalResourceId: event.LogicalResourceId,
+                      NoEcho: false,
+                  });
+                  log({ responseBody });
+                  const parsedUrl = url.parse(event.ResponseURL);
+                  const options = {
+                      hostname: parsedUrl.hostname,
+                      port: 443,
+                      path: parsedUrl.path,
+                      method: 'PUT',
+                      headers: {
+                          'content-type': '',
+                          'content-length': responseBody.length,
+                      },
+                  };
+                  const request = https.request(options, (r) => {
+                      log({ statusCode: r.statusCode, statusMessage: r.statusMessage });
+                      context.done();
+                  });
+                  request.on('error', (error) => {
+                      log({ sendError: error });
+                      context.done();
+                  });
+                  request.write(responseBody);
+                  request.end();
+              }
+          };
+      Handler: index.handler
+      Role:
+        Fn::GetAtt:
+          - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+          - Arn
+      Runtime: nodejs10.x
+      Timeout: 300
+    DependsOn:
+      - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36
+      - BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=1.91.0,@aws-cdk/assets=1.92.0,@aws-cdk/aws-apigateway=1.91.0,@aws-cdk/aws-applicationautoscaling=1.91.0,@aws-cdk/aws-autoscaling-common=1.91.0,@aws-cdk/aws-cloudwatch=1.92.0,@aws-cdk/aws-codeguruprofiler=1.91.0,@aws-cdk/aws-cognito=1.91.0,@aws-cdk/aws-dynamodb=1.91.0,@aws-cdk/aws-ec2=1.91.0,@aws-cdk/aws-ecr=1.91.0,@aws-cdk/aws-ecr-assets=1.91.0,@aws-cdk/aws-events=1.92.0,@aws-cdk/aws-iam=1.92.0,@aws-cdk/aws-kms=1.92.0,@aws-cdk/aws-lambda=1.91.0,@aws-cdk/aws-lambda-event-sources=1.91.0,@aws-cdk/aws-logs=1.92.0,@aws-cdk/aws-s3=1.92.0,@aws-cdk/aws-s3-assets=1.92.0,@aws-cdk/aws-s3-notifications=1.91.0,@aws-cdk/aws-sns=1.91.0,@aws-cdk/aws-sns-subscriptions=1.91.0,@aws-cdk/aws-sqs=1.91.0,@aws-cdk/aws-ssm=1.91.0,@aws-cdk/cloud-assembly-schema=1.92.0,@aws-cdk/core=1.92.0,@aws-cdk/custom-resources=1.91.0,@aws-cdk/cx-api=1.92.0,@aws-cdk/region-info=1.92.0,jsii-runtime=node.js/v12.20.1
+    Metadata:
+      aws:cdk:path: HomeLabs-PipBackend-Stack/CDKMetadata/Default
+    Condition: CDKMetadataAvailable
+Outputs:
+  imagebucketname:
+    Value:
+      Ref: imagebucketE8F90778
+  imagetablename:
+    Value:
+      Ref: imagetable98BCE2F6
+  cognitoconstructUserPoolId44331CD4:
+    Value:
+      Ref: cognitoconstructuserpool7FE8E0EE
+  cognitoconstructUserPoolClientId0BFF2D65:
+    Value:
+      Ref: cognitoconstructuserpoolclient83626E74
+  cognitoconstructIdentityPoolIdF9C8AFF7:
+    Value:
+      Ref: cognitoconstructidentitypool43E0CD8B
+  apiconstructimageserviceapiEndpoint2BB13EF1:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: apiconstructimageserviceapi2C3AD82E
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: apiconstructimageserviceapiDeploymentStagedev72788E2C
+          - /
+Parameters:
+  AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3Bucket47884103:
+    Type: String
+    Description: S3 bucket for asset "be4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ff"
+  AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffS3VersionKey64AF4A02:
+    Type: String
+    Description: S3 key for asset version "be4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ff"
+  AssetParametersbe4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ffArtifactHashA31A32A3:
+    Type: String
+    Description: Artifact hash for asset "be4683305cb67910cd19f4ea1597e7bef01938873c53b791ed6a58ab30f123ff"
+  AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3Bucket1410584D:
+    Type: String
+    Description: S3 bucket for asset "743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7"
+  AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7S3VersionKey1983D567:
+    Type: String
+    Description: S3 key for asset version "743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7"
+  AssetParameters743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7ArtifactHash63962D20:
+    Type: String
+    Description: Artifact hash for asset "743245067cd92857f5b0ba5fe194635cd806a3a41dbf2d1b4def2d31794c9cf7"
+  AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3Bucket4D46ABB5:
+    Type: String
+    Description: S3 bucket for asset "67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24"
+  AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24S3VersionKeyB0F28861:
+    Type: String
+    Description: S3 key for asset version "67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24"
+  AssetParameters67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24ArtifactHashBA91B77F:
+    Type: String
+    Description: Artifact hash for asset "67b7823b74bc135986aa72f889d6a8da058d0c4a20cbc2dfc6f78995fdd2fc24"
+  AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3Bucket53BD0626:
+    Type: String
+    Description: S3 bucket for asset "4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68"
+  AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68S3VersionKey72B38F2E:
+    Type: String
+    Description: S3 key for asset version "4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68"
+  AssetParameters4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68ArtifactHashC7F80E99:
+    Type: String
+    Description: Artifact hash for asset "4fc319ffbc9936a76a8cfeade0b5b8238d906726d831d009add20aa270bc5b68"
+  AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3Bucket387CE1B8:
+    Type: String
+    Description: S3 bucket for asset "c0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735f"
+  AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fS3VersionKey11646178:
+    Type: String
+    Description: S3 key for asset version "c0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735f"
+  AssetParametersc0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735fArtifactHashE2F18BD4:
+    Type: String
+    Description: Artifact hash for asset "c0e372e0765ea4b60c3e8ac85c578904772ba814086e23b96653d0b1e506735f"
+Conditions:
+  CDKMetadataAvailable:
+    Fn::Or:
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-northeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ap-southeast-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - ca-central-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - cn-northwest-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-central-1
+      - Fn::Or:
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-north-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - eu-west-3
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - me-south-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - sa-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-east-2
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-1
+          - Fn::Equals:
+              - Ref: AWS::Region
+              - us-west-2
+

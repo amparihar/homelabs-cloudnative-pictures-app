@@ -8,7 +8,10 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy": "cdk deploy",
+    "delete" : "cdk destroy",
+    "cfn" : "cdk synth >> cfn.yaml"
   },
   "devDependencies": {
     "@aws-cdk/assert": "^1.91.0",
