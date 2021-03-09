@@ -24,7 +24,9 @@ exports.run = async (event, context) => {
       }
     }
   } catch (err) {
-    console.log("rekFn error ", err);
+    console.log(
+      `RekFn failed, ${err.message} \nMore information in CloudWatch Log Stream: ${context.logStreamName}`
+    );
     throw new Error(err);
   }
 };

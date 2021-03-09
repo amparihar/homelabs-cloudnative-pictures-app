@@ -72,14 +72,17 @@ export class Cognito extends cdk.Construct {
 
     // outputs
     new cdk.CfnOutput(this, "UserPoolId", {
+      description: "UserPoolId",
       value: this.userPool.userPoolId,
     });
 
     new cdk.CfnOutput(this, "UserPoolClientId", {
+      description: "UserPoolClientId",
       value: userPoolClient.userPoolClientId,
     });
 
     new cdk.CfnOutput(this, "IdentityPoolId", {
+      description: "IdentityPoolId",
       value: identityPool.ref,
     });
   }

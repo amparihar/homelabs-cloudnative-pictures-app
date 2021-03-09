@@ -1,23 +1,25 @@
 Description: >-
-  The CDK Toolkit Stack. It is mandatory stack, for CDK based apps to work. It
-  was created by manually and manages resources necessary for managing your
-  Cloud Applications with AWS CDK.
+  Custom CDKToolkit Stack.
+  Use case : Use existing S3 bucket for CDK bootstraping
 Parameters:
   StagingBucketName:
     Type: String
-  StagingBucketDomainName:
+  StagingBucketRegion:
     Type: String
+# used to report insights on cdk usage
 Resources:
   CDKMetadata:
-    Type: 'AWS::CDK::Metadata'
+    Type: "AWS::CDK::Metadata"
     Properties:
       Modules: aws-cdk=1.87.1
 Outputs:
   BucketName:
-    Description: The name of the S3 bucket owned by the CDK toolkit stack
-    Value:
-      Ref: StagingBucketName
+    Description: Name of the existing S3 bucket
+    Value: !Ref StagingBucketName
   BucketDomainName:
-    Description: The domain name of the S3 bucket owned by the CDK toolkit stack
+    Description: Domain name of the existing S3 bucket
     Value:
-      Ref: StagingBucketDomainName
+      Fn::Sub:
+        - ${Bucket}.${Region}.amazonaws.com
+        - Bucket: !Ref StagingBucketName
+          Region: !Ref StagingBucketRegion
