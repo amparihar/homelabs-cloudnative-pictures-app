@@ -1,23 +1,38 @@
 import * as cdk from "@aws-cdk/core";
 
 import * as _s3 from "@aws-cdk/aws-s3";
-import * as s3n from "@aws-cdk/aws-s3-notifications";
+import * as _s3n from "@aws-cdk/aws-s3-notifications";
 import * as _dynamodb from "@aws-cdk/aws-dynamodb";
 import * as _lambda from "@aws-cdk/aws-lambda";
 import * as _lambdaEventSources from "@aws-cdk/aws-lambda-event-sources";
 import * as _iam from "@aws-cdk/aws-iam";
 import * as _logs from "@aws-cdk/aws-logs";
+import * as _sqs from "@aws-cdk/aws-sqs";
 
 import { ServiceApi } from "./serviceApi";
 import { Cognito } from "./cognito";
-import { QueueService } from "./queueService";
+import { MessageService } from "./messageService";
 
-export class HomeLabsPipBackendStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class HomeLabsPipStack extends cdk.Stack {
+  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const imageBucket = new _s3.Bucket(this, "image-bucket", {
       versioned: false,
+      encryption: _s3.BucketEncryption.KMS_MANAGED,
+      publicReadAccess: false,
+      blockPublicAccess: _s3.BlockPublicAccess.BLOCK_ALL,
+      // // lifecycleRules: [
+      // //   {
+      // //     expiration: cdk.Duration.days(60),
+      // //     transitions: [
+      // //       {
+      // //         transitionAfter: cdk.Duration.days(30),
+      // //         storageClass: _s3.StorageClass.INFREQUENT_ACCESS,
+      // //       }
+      // //     ],
+      // //   },
+      // // ],
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -55,11 +70,12 @@ export class HomeLabsPipBackendStack extends cdk.Stack {
       logRetention: _logs.RetentionDays.ONE_DAY,
     });
 
-    // rekFn.addEventSource(
-    //   new _lambdaEventSources.S3EventSource(imageBucket, {
-    //     events: [_s3.EventType.OBJECT_CREATED],
-    //   })
-    // );
+    // // adds a Resource based Policy to allow S3 to invoke the Fn
+    // // rekFn.addEventSource(
+    // //   new _lambdaEventSources.S3EventSource(imageBucket, {
+    // //     events: [_s3.EventType.OBJECT_CREATED],
+    // //   })
+    // // );
 
     imageBucket.grantRead(rekFn);
     imageTable.grantWriteData(rekFn);
@@ -72,6 +88,7 @@ export class HomeLabsPipBackendStack extends cdk.Stack {
 
     rekFn.addToRolePolicy(rekFnPolicyStatement);
 
+    // Service Functions
     const getImageServiceFn = new _lambda.Function(
       this,
       "get-image-service-function",
@@ -110,22 +127,45 @@ export class HomeLabsPipBackendStack extends cdk.Stack {
     imageTable.grantReadWriteData(deleteImageServiceFn);
     imageBucket.grantDelete(deleteImageServiceFn);
 
-    // const getImageDockerFn = new _lambda.DockerImageFunction(this, "get-image-docker-function", {
-    //   code: _lambda.DockerImageCode.fromImageAsset(
-    //     "src/serviceFunction/getImage"
-    //   ),
-    //   environment: {
-    //     IMAGE_BUCKET: imageBucket.bucketName,
-    //     IMAGE_TABLE: imageTable.tableName,
-    //   },
-    // });
-
-    // imageTable.grantReadWriteData(getImageDockerFn);
+    // // const getImageDockerFn = new _lambda.DockerImageFunction(this, "get-image-docker-function", {
+    // //   code: _lambda.DockerImageCode.fromImageAsset(
+    // //     "src/serviceFunction/getImage"
+    // //   ),
+    // //   environment: {
+    // //     IMAGE_BUCKET: imageBucket.bucketName,
+    // //     IMAGE_TABLE: imageTable.tableName,
+    // //   },
+    // // });
+    // // imageTable.grantReadWriteData(getImageDockerFn);
 
     // cognito
-    const cognito = new Cognito(this, "cognito-construct", {
-      imageBucket: imageBucket,
-    });
+    const cognito = new Cognito(this, "cognito-construct");
+
+    // Define access policies for the authenticated user
+
+    cognito.role.addToPolicy(
+      new _iam.PolicyStatement({
+        effect: _iam.Effect.ALLOW,
+        actions: ["s3:GetObject", "s3:PutObject"],
+        resources: [
+          `${imageBucket.bucketArn}/private/` +
+            "${cognito-identity.amazonaws.com:sub}/*",
+        ],
+      })
+    );
+
+    cognito.role.addToPolicy(
+      new _iam.PolicyStatement({
+        effect: _iam.Effect.ALLOW,
+        actions: ["s3:ListBucket"],
+        resources: [`${imageBucket.bucketArn}`],
+        conditions: {
+          StringLike: {
+            "s3:prefix": ["/private/${cognito-identity.amazonaws.com:sub}/*"],
+          },
+        },
+      })
+    );
 
     // api
     const api = new ServiceApi(this, "api-construct", {
@@ -137,18 +177,34 @@ export class HomeLabsPipBackendStack extends cdk.Stack {
     });
 
     // SQS
-    const imageQueue = new QueueService(this, "queue-service").imageQueue;
+    
+    // //const messageService = new MessageService(this, "message-service");
+
+    const dlQueue = new _sqs.Queue(this, "dlImageQueue", {
+      queueName: "pip-image-buffer-dlqueue",
+      visibilityTimeout: cdk.Duration.seconds(30), // this is the default
+      receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const imageQueue = new _sqs.Queue(this, "imageQueue", {
+      queueName: "pip-image-buffer-queue",
+      visibilityTimeout: cdk.Duration.seconds(180), // default is 30s
+      receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      deadLetterQueue: {
+        maxReceiveCount: 2,
+        queue: dlQueue,
+      },
+    });
+
+    rekFn.addEventSource(new _lambdaEventSources.SqsEventSource(imageQueue));
 
     imageBucket.addEventNotification(
       _s3.EventType.OBJECT_CREATED,
-      new s3n.SqsDestination(imageQueue),
+      new _s3n.SqsDestination(imageQueue),
       { prefix: "private/" }
     );
-
-    rekFn.addEventSource(
-      new _lambdaEventSources.SqsEventSource(imageQueue, {
-        batchSize: 10, // default
-      })
-    );
+    
   }
 }

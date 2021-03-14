@@ -20,9 +20,11 @@ export class ServiceApi extends cdk.Construct {
       userPoolArns,
     } = props;
 
-    const serviceApi = new _apigw.RestApi(this, "image-service-api", {
+    const serviceApi = new _apigw.RestApi(this, "pip-image-service-api", {
       description: "Service api for image operations",
-      endpointTypes: [_apigw.EndpointType.REGIONAL],
+      endpointConfiguration: {
+        types: [_apigw.EndpointType.REGIONAL],
+      },
       deployOptions: {
         stageName: "dev",
         //loggingLevel:_apigw.MethodLoggingLevel.OFF

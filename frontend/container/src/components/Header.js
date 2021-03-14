@@ -1,4 +1,5 @@
 import React from "react";
+import { withRouter } from "react-router-dom";
 
 const HeaderStyle = {
   backgroundColor: "#282c34",
@@ -15,4 +16,4 @@ const Header = ({ children }) => {
   return <header>{children}</header>;
 };
 
-export default Header;
+export default withRouter(Header);

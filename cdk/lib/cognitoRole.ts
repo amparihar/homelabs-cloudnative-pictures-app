@@ -1,13 +1,11 @@
 import * as cdk from "@aws-cdk/core";
 
 import * as _iam from "@aws-cdk/aws-iam";
-import * as _s3 from "@aws-cdk/aws-s3";
 
 import * as _cognito from "@aws-cdk/aws-cognito";
 import { FederatedPrincipal } from "@aws-cdk/aws-iam";
 
 export interface ICognitoRole extends cdk.StackProps {
-  imageBucket: _s3.Bucket;
   identityPool: _cognito.CfnIdentityPool;
 }
 
@@ -20,7 +18,7 @@ export class CognitoRole extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: ICognitoRole) {
     super(scope, id);
 
-    let { imageBucket, identityPool } = props;
+    let { identityPool } = props;
 
     // For each identity type, there is an assigned role.
     // This role has a policy attached to it which dictates which AWS services that role can access.
@@ -49,30 +47,6 @@ export class CognitoRole extends cdk.Construct {
       
     });
 
-    // Define access policies for the authenticated user
-
-    this._role.addToPolicy(
-      new _iam.PolicyStatement({
-        effect: _iam.Effect.ALLOW,
-        actions: ["s3:GetObject", "s3:PutObject"],
-        resources: [
-          `${imageBucket.bucketArn}/private/` +
-            "${cognito-identity.amazonaws.com:sub}/*",
-        ],
-      })
-    );
-
-    this._role.addToPolicy(
-      new _iam.PolicyStatement({
-        effect: _iam.Effect.ALLOW,
-        actions: ["s3:ListBucket"],
-        resources: [`${imageBucket.bucketArn}`],
-        conditions: {
-          StringLike: {
-            "s3:prefix": ["/private/${cognito-identity.amazonaws.com:sub}/*"],
-          },
-        },
-      })
-    );
+    
   }
 }

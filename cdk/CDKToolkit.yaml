@@ -4,8 +4,7 @@ Description: >-
 Parameters:
   StagingBucketName:
     Type: String
-  StagingBucketRegion:
-    Type: String
+  
 # used to report insights on cdk usage
 Resources:
   CDKMetadata:
@@ -22,4 +21,4 @@ Outputs:
       Fn::Sub:
         - ${Bucket}.${Region}.amazonaws.com
         - Bucket: !Ref StagingBucketName
-          Region: !Ref StagingBucketRegion
+          Region: !Ref AWS.Region

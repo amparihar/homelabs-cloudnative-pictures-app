@@ -1,13 +1,11 @@
 import * as cdk from "@aws-cdk/core";
-import * as _s3 from "@aws-cdk/aws-s3";
+import * as _iam from "@aws-cdk/aws-iam";
 
 import * as _cognito from "@aws-cdk/aws-cognito";
 
 import { CognitoRole } from "./cognitoRole";
 
-export interface ICognito extends cdk.StackProps {
-  imageBucket: _s3.Bucket;
-}
+export interface ICognito extends cdk.StackProps {}
 
 export class Cognito extends cdk.Construct {
   private _userPool: _cognito.UserPool;
@@ -15,10 +13,13 @@ export class Cognito extends cdk.Construct {
     return this._userPool;
   }
 
-  constructor(scope: cdk.Construct, id: string, props: ICognito) {
-    super(scope, id);
+  private _role: _iam.Role;
+  public get role() {
+    return this._role;
+  }
 
-    let { imageBucket } = props;
+  constructor(scope: cdk.Construct, id: string, props?: ICognito) {
+    super(scope, id);
 
     // Directory of users
     this._userPool = new _cognito.UserPool(this, "user-pool", {
@@ -35,7 +36,6 @@ export class Cognito extends cdk.Construct {
       {
         userPool: this.userPool,
         generateSecret: false,
-        
       }
     );
 
@@ -44,7 +44,6 @@ export class Cognito extends cdk.Construct {
 
     // Configure Cognito Identity Pool to accept users federated with Cognito User Pool by supplying the User Pool Name and User Pool Client ID.
     const identityPool = new _cognito.CfnIdentityPool(this, "identity-pool", {
-      
       allowUnauthenticatedIdentities: false,
       cognitoIdentityProviders: [
         {
@@ -52,21 +51,21 @@ export class Cognito extends cdk.Construct {
           providerName: this.userPool.userPoolProviderName,
         },
       ],
-      
     });
 
     // role assumed by identity when authenticated
     const authenticatedRole = new CognitoRole(this, "authenticated-role", {
-      imageBucket: imageBucket,
       identityPool: identityPool,
     });
+
+    this._role = authenticatedRole.role;
 
     new _cognito.CfnIdentityPoolRoleAttachment(
       this,
       "IdentityPool-Role-Attachment",
       {
         identityPoolId: identityPool.ref,
-        roles: { authenticated: authenticatedRole.role.roleArn },
+        roles: { authenticated: this._role.roleArn },
       }
     );
 
