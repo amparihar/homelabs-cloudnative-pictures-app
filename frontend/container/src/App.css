@@ -1,24 +1,38 @@
-.App {
-  text-align: center;
+header {
+  background-color: black;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 0 25px 0 black;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+header * {
+  display: inline;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+header li {
+  margin: 20px;
+}
+
+header li a {
+  color: white;
+  text-decoration: none;
+}
+
+header li a:hover{
+  color: yellow
 }
 
 
-.App-link {
-  color: #61dafb;
-}
 
-.navbar, .navbar-end, .navbar-menu, .navbar-start {
+.navbar,
+.navbar-end,
+.navbar-menu,
+.navbar-start {
   align-items: stretch !important;
   display: flex !important;
 }
@@ -34,11 +48,7 @@
   display: flex !important;
 }
 
-.navbar-end {
+.navbar-end{
   justify-content: flex-end !important;
   margin-left: auto !important;
 }
-
-
-
-

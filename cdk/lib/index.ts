@@ -177,8 +177,8 @@ export class HomeLabsPipStack extends cdk.Stack {
     });
 
     // SQS
-    
     // //const messageService = new MessageService(this, "message-service");
+    // // const imageQueue = messageService.imageQueue
 
     const dlQueue = new _sqs.Queue(this, "dlImageQueue", {
       queueName: "pip-image-buffer-dlqueue",
@@ -205,6 +205,5 @@ export class HomeLabsPipStack extends cdk.Stack {
       new _s3n.SqsDestination(imageQueue),
       { prefix: "private/" }
     );
-    
   }
 }

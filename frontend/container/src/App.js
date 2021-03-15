@@ -4,6 +4,7 @@ import { Switch, Route, BrowserRouter, Redirect } from "react-router-dom";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faUser } from "@fortawesome/free-solid-svg-icons";
 
+import "./App.css";
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
 import { HomePage } from "./components/home";
@@ -28,28 +29,37 @@ function App({ location, ...props }) {
   };
 
   return (
-    <div className="App">
+    <div>
       <BrowserRouter>
         {auth.isAuthenticated && <Redirect to="/home" />}
-        <Header>
-          <Navbar logoutAction={handleLogout} auth={auth}></Navbar>
-        </Header>
-        <Switch>
-          <Route
-            exact
-            path="/"
-            render={(props) => (
-              <SignInPage {...props} signInAction={handleSignIn} />
-            )}
-          ></Route>
-          {/* <Route
+        <Header
+          logoutAction={handleLogout}
+          auth={auth}
+          nav={(props) => <Navbar {...props}></Navbar>}
+        ></Header>
+        <section className="section main">
+          <Switch>
+            <Route
+              exact
+              path="/"
+              render={(props) => (
+                <SignInPage {...props} signInAction={handleSignIn} />
+              )}
+            ></Route>
+            {/* <Route
             exact
             path="/"
             component={SignInPage}
             signInAction={handleSignIn}
           /> */}
-          <ProtectedRoute exact path="/home" component={HomePage} auth={auth} />
-        </Switch>
+            <ProtectedRoute
+              exact
+              path="/home"
+              component={HomePage}
+              auth={auth}
+            />
+          </Switch>
+        </section>
       </BrowserRouter>
     </div>
   );

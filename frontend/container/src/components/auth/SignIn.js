@@ -10,7 +10,7 @@ const SignIn = ({ signInAction, ...props }) => {
   return (
     <section
       className="section auth"
-      style={{ marginTop: "1em", maxWidth: "50%" }}
+      style={{ maxWidth: "50%" }}
     >
       <div className="container">
         <h1>Sign In</h1>

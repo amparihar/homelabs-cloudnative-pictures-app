@@ -21,4 +21,4 @@ Outputs:
       Fn::Sub:
         - ${Bucket}.${Region}.amazonaws.com
         - Bucket: !Ref StagingBucketName
-          Region: !Ref AWS.Region
+          Region: !Ref AWS::Region
