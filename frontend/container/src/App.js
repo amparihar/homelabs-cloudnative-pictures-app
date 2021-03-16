@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import { Switch, Route, BrowserRouter, Redirect } from "react-router-dom";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faLock, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faUser, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 import "./App.css";
 import Header from "./components/Header";
 import Navbar from "./components/Navbar";
 import { HomePage } from "./components/home";
-import { ProtectedRoute, SignInPage } from "./components/auth";
+import { ProtectedRoute, SignInPage, SignUpPage } from "./components/auth";
 
-library.add(faLock, faUser);
+library.add(faLock, faUser, faEnvelope);
 
 function App({ location, ...props }) {
   const [auth, setAuth] = useState({
@@ -36,22 +36,22 @@ function App({ location, ...props }) {
           logoutAction={handleLogout}
           auth={auth}
           nav={(props) => <Navbar {...props}></Navbar>}
-        ></Header>
-        <section className="section main">
+        />
+        <div>
           <Switch>
             <Route
               exact
               path="/"
+              render={(props) => <Redirect to="/signin" />}
+            />
+            <Route
+              exact
+              path="/signin"
               render={(props) => (
                 <SignInPage {...props} signInAction={handleSignIn} />
               )}
-            ></Route>
-            {/* <Route
-            exact
-            path="/"
-            component={SignInPage}
-            signInAction={handleSignIn}
-          /> */}
+            />
+            <Route exact path="/signup" component={SignUpPage} />
             <ProtectedRoute
               exact
               path="/home"
@@ -59,7 +59,7 @@ function App({ location, ...props }) {
               auth={auth}
             />
           </Switch>
-        </section>
+        </div>
       </BrowserRouter>
     </div>
   );
