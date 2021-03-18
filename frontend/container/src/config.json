@@ -1,0 +1,14 @@
+{
+  "api": {
+    "invokeUrl": ""
+  },
+  "cognito": {
+    "REGION": "ap-south-1",
+    "USER_POOL_ID": "",
+    "APP_CLIENT_ID": "",
+    "IDENTITY_POOL_ID": ""
+  },
+  "s3": {
+    "bucket": ""
+  }
+}

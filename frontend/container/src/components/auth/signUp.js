@@ -2,22 +2,57 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-const SignUp = (props) => {
+import { Auth } from "aws-amplify";
+import { useForm } from "react-hook-form";
+
+import { ErrorSummary, FormErrors, ApiErrors } from "../../shared";
+
+const SignUp = ({ history, ...props }) => {
+  const {
+    register,
+    handleSubmit,
+    errors: formErrors = {},
+    getValues,
+  } = useForm();
+
+  const onSubmit = async (data) => {
+    const { username, password } = data || {};
+    try {
+      const location = {
+        pathname: "/welcome",
+        state: {
+          username,
+        },
+      };
+      history.push(location);
+    } catch (err) {}
+  };
+
   return (
-    <section className="section auth" style={{maxWidth:"50%"}}>
+    <section className="section auth" style={{ maxWidth: "50%" }}>
       <div className="container">
+        <ErrorSummary
+          errors={["this ia an amplify error....."]}
+          apiErr={(errors) => <ApiErrors errors={errors} />}
+        />
+        <ErrorSummary
+          errors={formErrors}
+          formErr={(errors) => <FormErrors errors={errors} />}
+        />
         <h1 className="title">Sign Up</h1>
 
-        <form>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="field">
             <p className="control has-icons-left">
               <input
-                className="input"
+                className={formErrors?.username ? "input is-danger" : "input"}
                 type="text"
                 id="username"
+                name="username"
                 autoComplete="off"
                 aria-describedby="userNameHelp"
                 placeholder="Enter Username"
+                ref={register({ required: "Username is required" })}
               />
               <span className="icon is-small is-left">
                 <FontAwesomeIcon icon="user" />
@@ -27,12 +62,20 @@ const SignUp = (props) => {
           <div className="field">
             <p className="control has-icons-left">
               <input
-                className="input"
-                type="email"
+                className={formErrors?.email ? "input is-danger" : "input"}
+                type="text"
                 id="email"
+                name="email"
                 autoComplete="off"
                 aria-describedby="emailHelp"
                 placeholder="Enter email"
+                ref={register({
+                  required: "Email is required",
+                  pattern: {
+                    value: /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+                    message: "Invalid email address",
+                  },
+                })}
               />
               <span className="icon is-small is-left">
                 <FontAwesomeIcon icon="envelope" />
@@ -42,10 +85,18 @@ const SignUp = (props) => {
           <div className="field">
             <p className="control has-icons-left">
               <input
-                className="input"
+                className={formErrors?.password ? "input is-danger" : "input"}
                 type="password"
                 id="password"
+                name="password"
                 placeholder="Password"
+                ref={register({
+                  required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must have at least 8 characters",
+                  },
+                })}
               />
               <span className="icon is-small is-left">
                 <FontAwesomeIcon icon="lock" />
@@ -55,10 +106,22 @@ const SignUp = (props) => {
           <div className="field">
             <p className="control has-icons-left">
               <input
-                className="input"
+                className={
+                  formErrors?.confirmpassword ? "input is-danger" : "input"
+                }
                 type="password"
                 id="confirmpassword"
+                name="confirmpassword"
                 placeholder="Confirm password"
+                ref={register({
+                  required: {
+                    value: true,
+                    message: "Confirm Password is required",
+                  },
+                  validate: () =>
+                    getValues("password") === getValues("confirmpassword") ||
+                    "Password and Confirm Password do not match",
+                })}
               />
               <span className="icon is-small is-left">
                 <FontAwesomeIcon icon="lock" />
@@ -75,7 +138,9 @@ const SignUp = (props) => {
           </div>
           <div className="field">
             <p className="control">
-              <button className="button is-success">Sign Up</button>
+              <button type="submit" className="button is-success">
+                Sign Up
+              </button>
             </p>
           </div>
         </form>

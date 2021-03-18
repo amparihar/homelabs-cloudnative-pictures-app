@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Navbar = ({ logoutAction,  ...props }) => {
+export const Navbar = (props) => {
   return (
     <nav style={{ width: "100%", display: "table" }}>
         <ul>
@@ -15,7 +15,7 @@ const Navbar = ({ logoutAction,  ...props }) => {
             <Link to="/admin">Admin</Link>
           </li>
           <li style={{ float: "right" }}>
-            <Link to="/" onClick={logoutAction}>
+            <Link to="/" >
               Log out
             </Link>
           </li>
@@ -23,5 +23,3 @@ const Navbar = ({ logoutAction,  ...props }) => {
       </nav>
   );
 };
-
-export default Navbar;

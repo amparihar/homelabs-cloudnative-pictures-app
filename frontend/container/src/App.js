@@ -1,42 +1,31 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import { Switch, Route, BrowserRouter, Redirect } from "react-router-dom";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faUser, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 import "./App.css";
-import Header from "./components/Header";
-import Navbar from "./components/Navbar";
-import { HomePage } from "./components/home";
-import { ProtectedRoute, SignInPage, SignUpPage } from "./components/auth";
+import { Header } from "./components/Header";
+import { Navbar } from "./components/Navbar";
+import { HomePage } from "./components/Home";
+import {
+  ProtectedRoute,
+  SignInPage,
+  SignUpPage,
+  WelcomePage,
+} from "./components/auth";
+import { AuthContext } from "./shared";
 
 library.add(faLock, faUser, faEnvelope);
 
-function App({ location, ...props }) {
-  const [auth, setAuth] = useState({
-    isAuthenticated: false,
-    user: null,
-  });
-
-  const handleSignIn = () => {
-    setAuth((auth) => ({ isAuthenticated: true }));
-  };
-
-  const handleSignUp = () => {};
-
-  const handleLogout = () => {
-    setAuth((auth) => ({ isAuthenticated: false }));
-  };
-
+export const App = (props) => {
+  const { auth } = useContext(AuthContext);
   return (
     <div>
       <BrowserRouter>
-        {auth.isAuthenticated && <Redirect to="/home" />}
-        <Header
-          logoutAction={handleLogout}
-          auth={auth}
-          nav={(props) => <Navbar {...props}></Navbar>}
-        />
+        {auth.verified && (
+          <Header nav={(props) => <Navbar {...props}></Navbar>} />
+        )}
         <div>
           <Switch>
             <Route
@@ -47,22 +36,14 @@ function App({ location, ...props }) {
             <Route
               exact
               path="/signin"
-              render={(props) => (
-                <SignInPage {...props} signInAction={handleSignIn} />
-              )}
+              render={(props) => <SignInPage {...props} />}
             />
             <Route exact path="/signup" component={SignUpPage} />
-            <ProtectedRoute
-              exact
-              path="/home"
-              component={HomePage}
-              auth={auth}
-            />
+            <Route exact path="/welcome" component={WelcomePage} />
+            <ProtectedRoute exact path="/home" component={HomePage} />
           </Switch>
         </div>
       </BrowserRouter>
     </div>
   );
-}
-
-export default App;
+};
