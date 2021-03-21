@@ -11,7 +11,6 @@ import * as _sqs from "@aws-cdk/aws-sqs";
 
 import { ServiceApi } from "./serviceApi";
 import { Cognito } from "./cognito";
-import { MessageService } from "./messageService";
 
 export class HomeLabsPipStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
@@ -22,6 +21,14 @@ export class HomeLabsPipStack extends cdk.Stack {
       encryption: _s3.BucketEncryption.KMS_MANAGED,
       publicReadAccess: false,
       blockPublicAccess: _s3.BlockPublicAccess.BLOCK_ALL,
+      cors: [
+        {
+          allowedMethods: [_s3.HttpMethods.GET, _s3.HttpMethods.PUT],
+          allowedOrigins: ["*"],
+          allowedHeaders: ["*"],
+          //maxAge: 3000,
+        },
+      ],
       // // lifecycleRules: [
       // //   {
       // //     expiration: cdk.Duration.days(60),
@@ -139,33 +146,9 @@ export class HomeLabsPipStack extends cdk.Stack {
     // // imageTable.grantReadWriteData(getImageDockerFn);
 
     // cognito
-    const cognito = new Cognito(this, "cognito-construct");
-
-    // Define access policies for the authenticated user
-
-    cognito.role.addToPolicy(
-      new _iam.PolicyStatement({
-        effect: _iam.Effect.ALLOW,
-        actions: ["s3:GetObject", "s3:PutObject"],
-        resources: [
-          `${imageBucket.bucketArn}/private/` +
-            "${cognito-identity.amazonaws.com:sub}/*",
-        ],
-      })
-    );
-
-    cognito.role.addToPolicy(
-      new _iam.PolicyStatement({
-        effect: _iam.Effect.ALLOW,
-        actions: ["s3:ListBucket"],
-        resources: [`${imageBucket.bucketArn}`],
-        conditions: {
-          StringLike: {
-            "s3:prefix": ["/private/${cognito-identity.amazonaws.com:sub}/*"],
-          },
-        },
-      })
-    );
+    const cognito = new Cognito(this, "cognito-construct", {
+      imageBucketArn: imageBucket.bucketArn,
+    });
 
     // api
     const api = new ServiceApi(this, "api-construct", {

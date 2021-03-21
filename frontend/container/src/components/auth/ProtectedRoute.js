@@ -4,13 +4,13 @@ import { Route, Redirect } from "react-router-dom";
 import { AuthContext } from "../../shared";
 
 const ProtectedRoute = ({ component: Component, ...rest }) => {
-  const { auth } = useContext(AuthContext);
+  const { authState } = useContext(AuthContext);
 
   return (
     <Route
       {...rest}
       render={(props) => {
-        if (auth.verified) {
+        if (authState.signedIn) {
           return <Component {...props} />;
         } else {
           const redirectLocation = {

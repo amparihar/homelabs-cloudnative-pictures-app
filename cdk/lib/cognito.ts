@@ -1,11 +1,10 @@
 import * as cdk from "@aws-cdk/core";
 import * as _iam from "@aws-cdk/aws-iam";
-
 import * as _cognito from "@aws-cdk/aws-cognito";
 
-import { CognitoRole } from "./cognitoRole";
-
-export interface ICognito extends cdk.StackProps {}
+export interface ICognito extends cdk.StackProps {
+  imageBucketArn: string;
+}
 
 export class Cognito extends cdk.Construct {
   private _userPool: _cognito.UserPool;
@@ -13,19 +12,16 @@ export class Cognito extends cdk.Construct {
     return this._userPool;
   }
 
-  private _role: _iam.Role;
-  public get role() {
-    return this._role;
-  }
-
-  constructor(scope: cdk.Construct, id: string, props?: ICognito) {
+  constructor(scope: cdk.Construct, id: string, props: ICognito) {
     super(scope, id);
+
+    const { imageBucketArn } = props;
 
     // Directory of users
     this._userPool = new _cognito.UserPool(this, "user-pool", {
       selfSignUpEnabled: true,
       signInAliases: { email: true, username: true },
-      autoVerify: { email: true },
+      autoVerify: { email: false },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -54,18 +50,63 @@ export class Cognito extends cdk.Construct {
     });
 
     // role assumed by identity when authenticated
-    const authenticatedRole = new CognitoRole(this, "authenticated-role", {
-      identityPool: identityPool,
+    // For each identity type, there is an assigned role.
+    // This role has a policy attached to it which dictates which AWS services that role can access.
+    // When Amazon Cognito receives a request, the service will determine the identity type,
+    // determine the role assigned to that identity type, and use the policy attached to that role to respond.
+    // By modifying a policy or assigning a different role to an identity type,
+    // you can control which AWS services an identity type can access.
+
+    // This policy defines that we want to allow federated users from cognito-identity.amazonaws.com to assume this role.
+    // Additionally, we make the restriction that the aud(recipient) of the token, in our case the identity pool ID, matches our identity pool.
+    // Finally, we specify that the amr of the token contains the value authenticated.
+
+    const role = new _iam.Role(this, "auth_role", {
+      assumedBy: new _iam.FederatedPrincipal(
+        "cognito-identity.amazonaws.com", // Principal
+        {
+          StringEquals: {
+            "cognito-identity.amazonaws.com:aud": identityPool.ref,
+          },
+          "ForAnyValue:StringLike": {
+            "cognito-identity.amazonaws.com:amr": "authenticated",
+          },
+        },
+        "sts:AssumeRoleWithWebIdentity" // Action
+      ),
     });
 
-    this._role = authenticatedRole.role;
+    // Define access policies for the authenticated user
+
+    role.addToPolicy(
+      new _iam.PolicyStatement({
+        effect: _iam.Effect.ALLOW,
+        actions: ["s3:GetObject", "s3:PutObject"],
+        resources: [
+          imageBucketArn + "/private/${cognito-identity.amazonaws.com:sub}/*",
+        ],
+      })
+    );
+
+    role.addToPolicy(
+      new _iam.PolicyStatement({
+        effect: _iam.Effect.ALLOW,
+        actions: ["s3:ListBucket"],
+        resources: [imageBucketArn],
+        conditions: {
+          StringLike: {
+            "s3:prefix": ["/private/${cognito-identity.amazonaws.com:sub}/*"],
+          },
+        },
+      })
+    );
 
     new _cognito.CfnIdentityPoolRoleAttachment(
       this,
       "IdentityPool-Role-Attachment",
       {
         identityPoolId: identityPool.ref,
-        roles: { authenticated: this._role.roleArn },
+        roles: { authenticated: role.roleArn },
       }
     );
 

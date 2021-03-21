@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -15,24 +15,33 @@ const SignUp = ({ history, ...props }) => {
     getValues,
   } = useForm();
 
+  const [apiErrors, setApiErrors] = useState([]);
+
   const onSubmit = async (data) => {
-    const { username, password } = data || {};
+    const { username, password, email } = data || {};
     try {
+      const { user } = await Auth.signUp({
+        username,
+        password,
+        attributes: { email },
+      });
       const location = {
         pathname: "/welcome",
         state: {
-          username,
+          username: user.username,
         },
       };
       history.push(location);
-    } catch (err) {}
+    } catch (err) {
+      setApiErrors((errors) => [err.message]);
+    }
   };
 
   return (
-    <section className="section auth" style={{ maxWidth: "50%" }}>
+    <section className="section auth box" style={{ maxWidth: "50%" }}>
       <div className="container">
         <ErrorSummary
-          errors={["this ia an amplify error....."]}
+          errors={apiErrors}
           apiErr={(errors) => <ApiErrors errors={errors} />}
         />
         <ErrorSummary
@@ -41,7 +50,7 @@ const SignUp = ({ history, ...props }) => {
         />
         <h1 className="title">Sign Up</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} >
           <div className="field">
             <p className="control has-icons-left">
               <input
@@ -132,14 +141,15 @@ const SignUp = ({ history, ...props }) => {
             <div className="column is-one-fifth">
               <Link to="/signin">Sign In</Link>
             </div>
-            <div className="column">
-              <Link to="/forgotpassword">Forgot password?</Link>
-            </div>
+            {/* <div className="column">
+              Forgot your Password?
+              <Link to="/forgotpassword">Reset password</Link>
+            </div> */}
           </div>
           <div className="field">
             <p className="control">
               <button type="submit" className="button is-success">
-                Sign Up
+                SIGN UP
               </button>
             </p>
           </div>

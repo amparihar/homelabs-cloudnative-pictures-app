@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { Switch, Route, BrowserRouter, Redirect } from "react-router-dom";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faLock, faUser, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faUser, faEnvelope, faUpload } from "@fortawesome/free-solid-svg-icons";
 
 import "./App.css";
 import { Header } from "./components/Header";
@@ -14,16 +14,17 @@ import {
   SignUpPage,
   WelcomePage,
 } from "./components/auth";
+import { AdminPage } from "./components/admin";
 import { AuthContext } from "./shared";
 
-library.add(faLock, faUser, faEnvelope);
+library.add(faLock, faUser, faEnvelope, faUpload);
 
 export const App = (props) => {
-  const { auth } = useContext(AuthContext);
+  const { authState } = useContext(AuthContext);
   return (
     <div>
       <BrowserRouter>
-        {auth.verified && (
+        {authState.signedIn && (
           <Header nav={(props) => <Navbar {...props}></Navbar>} />
         )}
         <div>
@@ -41,6 +42,7 @@ export const App = (props) => {
             <Route exact path="/signup" component={SignUpPage} />
             <Route exact path="/welcome" component={WelcomePage} />
             <ProtectedRoute exact path="/home" component={HomePage} />
+            <ProtectedRoute exact path="/admin" component={AdminPage} />
           </Switch>
         </div>
       </BrowserRouter>
