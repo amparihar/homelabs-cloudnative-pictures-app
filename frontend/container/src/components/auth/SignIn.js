@@ -17,9 +17,8 @@ const SignIn = ({ location, ...props }) => {
   const onSignIn = async (data) => {
     const { username, password } = data;
     try {
-      //const user = await Auth.signIn(username, password);
-      //setAuthState((state) => ({ ...state, signedIn: user ? true : false, user }));
-      setAuthState((state) => ({ ...state, signedIn: true, user: null }));
+      const user = await Auth.signIn(username, password);
+      setAuthState((state) => ({ ...state, signedIn: user ? true : false, user }));
     } catch (err) {
       setApiErrors((errors) => [err.message]);
     }
