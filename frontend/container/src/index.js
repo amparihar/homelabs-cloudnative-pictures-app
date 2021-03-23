@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import Amplify, { Auth, Storage } from "aws-amplify";
+import { ToastProvider } from "react-toast-notifications";
 
 import "./index.css";
 import * as config from "./config.json";
@@ -24,7 +25,9 @@ Amplify.configure({
 ReactDOM.render(
   <React.StrictMode>
     <AuthContextProvider>
-      <App />
+      <ToastProvider>
+        <App />
+      </ToastProvider>
     </AuthContextProvider>
   </React.StrictMode>,
   document.getElementById("root")

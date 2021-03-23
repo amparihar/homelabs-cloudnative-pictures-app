@@ -4,7 +4,6 @@ import { Switch, Route, BrowserRouter, Redirect } from "react-router-dom";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faLock, faUser, faEnvelope, faUpload } from "@fortawesome/free-solid-svg-icons";
 
-import "./App.css";
 import { Header } from "./components/Header";
 import { Navbar } from "./components/Navbar";
 import { HomePage } from "./components/Home";

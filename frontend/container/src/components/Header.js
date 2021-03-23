@@ -1,10 +1,8 @@
 import React from "react";
 import { withRouter } from "react-router-dom";
 
+import "../styles/header-style.css"
+
 export const Header = withRouter(({ nav, ...props }) => {
-  return (
-    <section className="section main">
-      <header>{nav(props)}</header>;
-    </section>
-  );
+  return <>{nav(props)}</>;
 });

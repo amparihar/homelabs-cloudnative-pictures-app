@@ -17,8 +17,9 @@ const SignIn = ({ location, ...props }) => {
   const onSignIn = async (data) => {
     const { username, password } = data;
     try {
-      const user = await Auth.signIn(username, password);
-      setAuthState((state) => ({ ...state, signedIn: user ? true : false, user }));
+      //const user = await Auth.signIn(username, password);
+      //setAuthState((state) => ({ ...state, signedIn: user ? true : false, user }));
+      setAuthState((state) => ({ ...state, signedIn: true, user: null }));
     } catch (err) {
       setApiErrors((errors) => [err.message]);
     }
@@ -26,8 +27,8 @@ const SignIn = ({ location, ...props }) => {
   return (
     <>
       {authState.signedIn && <Redirect to={referrer} />}
-      <section className="section auth box" style={{ maxWidth: "50%" }}>
-        <div className="container">
+      <section className="section auth" style={{ maxWidth: "50%" }}>
+        <div>
           <ErrorSummary
             errors={apiErrors}
             apiErr={(errors) => <ApiErrors errors={errors} />}

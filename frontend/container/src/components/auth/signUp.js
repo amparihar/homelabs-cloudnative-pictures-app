@@ -38,8 +38,8 @@ const SignUp = ({ history, ...props }) => {
   };
 
   return (
-    <section className="section auth box" style={{ maxWidth: "50%" }}>
-      <div className="container">
+    <section className="section auth" style={{ maxWidth: "50%" }}>
+      <div>
         <ErrorSummary
           errors={apiErrors}
           apiErr={(errors) => <ApiErrors errors={errors} />}

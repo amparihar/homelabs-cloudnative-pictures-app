@@ -27,6 +27,17 @@ header li a:hover{
   color: yellow
 }
 
+.to-link{
+  background: none;
+  border: none;
+  
+}
+
+.to-link:hover{
+  background: none;
+  text-decoration: none;
+}
+
 
 
 
