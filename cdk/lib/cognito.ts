@@ -22,6 +22,7 @@ export class Cognito extends cdk.Construct {
       selfSignUpEnabled: true,
       signInAliases: { email: true, username: true },
       autoVerify: { email: false },
+      
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -95,7 +96,7 @@ export class Cognito extends cdk.Construct {
         resources: [imageBucketArn],
         conditions: {
           StringLike: {
-            "s3:prefix": ["/private/${cognito-identity.amazonaws.com:sub}/*"],
+            "s3:prefix": ["private/${cognito-identity.amazonaws.com:sub}/*"],
           },
         },
       })

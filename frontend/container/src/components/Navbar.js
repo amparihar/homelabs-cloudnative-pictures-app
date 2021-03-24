@@ -43,24 +43,23 @@ export const Navbar = (props) => {
                   className="navbar-link"
                   onClick={(e) => e.preventDefault()}
                 >
-                  {userInfo.username}
+                  {userInfo.id}
                 </a>
+                
                 <div className="navbar-dropdown">
                   <a
                     href="/"
                     className="navbar-item"
                     onClick={(e) => e.preventDefault()}
                   >
-                    {userInfo.email}
+                    {userInfo.username}
                   </a>
-                </div>
-                <div className="navbar-dropdown">
                   <a
                     href="/"
                     className="navbar-item"
                     onClick={(e) => e.preventDefault()}
                   >
-                    {userInfo.cognitoID}
+                    {userInfo.attributes.email}
                   </a>
                 </div>
               </div>

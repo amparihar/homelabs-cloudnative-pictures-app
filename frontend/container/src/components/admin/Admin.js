@@ -5,8 +5,21 @@ import { Auth, Storage } from "aws-amplify";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import { ImageList } from "./";
+
+const getImageDetails = (image) => {
+  let filenameOnly = image.key.replace("images/", "");
+  let modified = image.lastModified.toString();
+
+  return {
+    key: filenameOnly,
+    lastModified: modified,
+  };
+};
+
 const Admin = () => {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [imageList, setImageList] = useState({ isLoading: false, data: [] });
   const { addToast } = useToasts();
   // Cognito IdentityPoolId
   const cognitoId = useRef(null);
@@ -15,11 +28,29 @@ const Admin = () => {
     return await Auth.currentUserInfo();
   }, []);
 
+  const listImages = useCallback(async () => {
+    try {
+      setImageList((list) => ({ isLoading: true, data: [] }));
+      const images = await Storage.list("images/", { level: "private" });
+      setImageList((list) => ({
+        isLoading: false,
+        data: images.map(getImageDetails),
+      }));
+    } catch (err) {
+      setImageList((list) => ({ isLoading: true, data: [] }));
+      addToast(err.message || err, { appearance: "error" });
+    }
+  }, [setImageList, addToast]);
+
   useEffect(() => {
     currentUserInfo().then(
       (userInfo) => (cognitoId.current = userInfo ? userInfo.id : null)
     );
   }, [currentUserInfo]);
+
+  useEffect(() => {
+    listImages();
+  }, [listImages]);
 
   const handleOnChange = (e) => {
     setSelectedImage((image) => e.target.files[0]);
@@ -33,11 +64,13 @@ const Admin = () => {
         config = { contentType: selectedImage.type, level: "private" };
       await Storage.put(key, file, config);
       setSelectedImage((image) => null);
+      listImages();
       addToast("Image uploaded successfully", { appearance: "success" });
     } catch (err) {
       addToast(err.message || err, { appearance: "error" });
     }
   };
+
   return (
     <section className="section">
       <div>
@@ -76,6 +109,9 @@ const Admin = () => {
           </div>
         </div>
       </div>
+      <section class="section">
+        <ImageList imageList={imageList} />
+      </section>
     </section>
   );
 };

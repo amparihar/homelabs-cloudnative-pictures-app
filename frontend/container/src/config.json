@@ -4,11 +4,11 @@
   },
   "cognito": {
     "REGION": "ap-south-1",
-    "USER_POOL_ID": "ap-south-1_bAOWqxuqG",
-    "APP_CLIENT_ID": "36fe5pbsbi13dvab717vfsgd7a",
-    "IDENTITY_POOL_ID": "ap-south-1:7f1b063d-accc-4601-911d-7bb90797e3b6"
+    "USER_POOL_ID": "",
+    "APP_CLIENT_ID": "",
+    "IDENTITY_POOL_ID": ""
   },
   "s3": {
-    "bucket": "homelabs-pip-stack-dev-imagebuckete8f90778-1i9istntrl70h"
+    "bucket": ""
   }
 }

@@ -9,12 +9,11 @@ const CurrentUserInfo = () => {
   }, []);
 
   useEffect(() => {
-    currentUserInfo()
-      .then((userInfo) => {
-        if (Object.keys(userInfo).length)
-          setUserInfo((prev) => ({ ...prev, ...userInfo }));
-      })
-      .catch((err) => setUserInfo((prev) => null));
+    currentUserInfo().then((userInfo) => {
+      if (Object.keys(userInfo).length) {
+        setUserInfo((prev) => ({ ...prev, ...userInfo }));
+      }
+    });
   }, [currentUserInfo]);
 
   return { userInfo };
