@@ -29,17 +29,17 @@ export class HomeLabsPipStack extends cdk.Stack {
           //maxAge: 3000,
         },
       ],
-      // // lifecycleRules: [
-      // //   {
-      // //     expiration: cdk.Duration.days(60),
-      // //     transitions: [
-      // //       {
-      // //         transitionAfter: cdk.Duration.days(30),
-      // //         storageClass: _s3.StorageClass.INFREQUENT_ACCESS,
-      // //       }
-      // //     ],
-      // //   },
-      // // ],
+      lifecycleRules: [
+        {
+          expiration: cdk.Duration.days(60),
+          transitions: [
+            {
+              transitionAfter: cdk.Duration.days(30),
+              storageClass: _s3.StorageClass.INFREQUENT_ACCESS,
+            }
+          ],
+        },
+      ],
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 

@@ -20,9 +20,8 @@ export class Cognito extends cdk.Construct {
     // Directory of users
     this._userPool = new _cognito.UserPool(this, "user-pool", {
       selfSignUpEnabled: true,
-      signInAliases: { email: true, username: true },
-      autoVerify: { email: false },
-      
+      signInAliases: { username: true, email: true },
+      autoVerify: { email: true },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 

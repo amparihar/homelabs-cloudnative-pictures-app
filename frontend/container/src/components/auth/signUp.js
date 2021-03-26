@@ -26,20 +26,20 @@ const SignUp = ({ history, ...props }) => {
         attributes: { email },
       });
       const location = {
-        pathname: "/welcome",
+        pathname: "/verifyaccount",
         state: {
           username: user.username,
         },
       };
       history.push(location);
     } catch (err) {
-      setApiErrors((errors) => [err.message]);
+      setApiErrors((errors) => [err.message || err]);
     }
   };
 
   return (
     <section className="section auth" style={{ maxWidth: "50%" }}>
-      <div>
+      <div className="container">
         <ErrorSummary
           errors={apiErrors}
           apiErr={(errors) => <ApiErrors errors={errors} />}
@@ -50,7 +50,7 @@ const SignUp = ({ history, ...props }) => {
         />
         <h1 className="title">Sign Up</h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} >
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="field">
             <p className="control has-icons-left">
               <input

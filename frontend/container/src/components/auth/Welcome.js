@@ -3,7 +3,7 @@ import { Link, withRouter } from "react-router-dom";
 
 const Welcome = ({ history, location, ...props }) => {
   const {
-    state: { username = "" },
+    state: { username = "" } = {},
   } = location || {};
 
   setTimeout(() => {
@@ -24,4 +24,4 @@ const Welcome = ({ history, location, ...props }) => {
   );
 };
 
-export const WelcomePage = withRouter(Welcome);
+export const WelcomePage = Welcome

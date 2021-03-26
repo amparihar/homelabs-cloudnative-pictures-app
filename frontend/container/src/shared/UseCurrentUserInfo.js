@@ -10,7 +10,7 @@ const CurrentUserInfo = () => {
 
   useEffect(() => {
     currentUserInfo().then((userInfo) => {
-      if (Object.keys(userInfo).length) {
+      if (userInfo && Object.keys(userInfo).length) {
         setUserInfo((prev) => ({ ...prev, ...userInfo }));
       }
     });

@@ -27,11 +27,11 @@ export const Navbar = (props) => {
             <Link className="navbar-item" to="/home">
               Home
             </Link>
-            <Link className="navbar-item" to="/pictures">
-              Pictures
+            <Link className="navbar-item" to="/gallery">
+              Gallery
             </Link>
-            <Link className="navbar-item" to="/admin">
-              Admin
+            <Link className="navbar-item" to="/picture">
+              Pictures
             </Link>
           </div>
 
@@ -52,14 +52,14 @@ export const Navbar = (props) => {
                     className="navbar-item"
                     onClick={(e) => e.preventDefault()}
                   >
-                    {userInfo.username}
+                    Username - {userInfo.username}
                   </a>
                   <a
                     href="/"
                     className="navbar-item"
                     onClick={(e) => e.preventDefault()}
                   >
-                    {userInfo.attributes.email}
+                    Email - {userInfo.attributes.email}
                   </a>
                 </div>
               </div>

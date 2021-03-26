@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Amplify, { Auth, Storage } from "aws-amplify";
+import Amplify from "aws-amplify";
 import { ToastProvider } from "react-toast-notifications";
 
 import "./index.css";

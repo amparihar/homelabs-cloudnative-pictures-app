@@ -2,11 +2,11 @@ import MaterialTable from "material-table";
 
 import { MatTableIcons } from "../../shared";
 
-const ImageList = ({ imageList, ...props }) => {
-  const { isLoading, data } = imageList;
+const PictureList = ({ pictureList, ...props }) => {
+  const { isLoading, data } = pictureList;
   const columns = [
     {
-      title: "Image Name",
+      title: "Picture Name",
       field: "key",
     },
     {
@@ -16,7 +16,7 @@ const ImageList = ({ imageList, ...props }) => {
   ];
   return (
     <MaterialTable
-      title="My Images"
+      title="My Pictures"
       columns={columns}
       data={data}
       icons={MatTableIcons}
@@ -26,4 +26,4 @@ const ImageList = ({ imageList, ...props }) => {
   );
 };
 
-export default ImageList;
+export default PictureList;

@@ -27,7 +27,7 @@ const SignIn = ({ location, ...props }) => {
     <>
       {authState.signedIn && <Redirect to={referrer} />}
       <section className="section auth" style={{ maxWidth: "50%" }}>
-        <div>
+        <div className="container">
           <ErrorSummary
             errors={apiErrors}
             apiErr={(errors) => <ApiErrors errors={errors} />}

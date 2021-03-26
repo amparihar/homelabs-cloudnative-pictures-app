@@ -17,7 +17,7 @@ exports.run = async (event, context) => {
       for (let jdx = 0; jdx < bodyRecords.length; jdx++) {
         const bodyRecord = bodyRecords[jdx];
         let name = bodyRecord.s3.bucket.name,
-          key = bodyRecord.s3.object.key;
+          key = decodeS3Key(bodyRecord.s3.object.key);
 
         const labels = await detectImageLabels(name, key);
         await saveImageLabels(key, labels.Labels);
@@ -58,4 +58,8 @@ const saveImageLabels = async (key, labels) => {
   };
 
   await db.put(params).promise();
+};
+
+const decodeS3Key = (key) => {
+  return key.replace("%3A", ":");
 };
