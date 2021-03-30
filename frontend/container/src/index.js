@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Amplify from "aws-amplify";
+import Amplify, { Auth } from "aws-amplify";
 import { ToastProvider } from "react-toast-notifications";
 
 import "./index.css";
@@ -19,6 +19,26 @@ Amplify.configure({
   Storage: {
     region: config.cognito.REGION,
     bucket: config.s3.bucket,
+  },
+  API: {
+    endpoints: [
+      {
+        name: config.api.name,
+        endpoint: config.api.invokeUrl,
+        path: config.api.path,
+        custom_header: async () => {
+          //   return { Authorization : 'token' }
+          //   // Alternatively, with Cognito User Pools use this:
+          //   // return { Authorization: `Bearer ${(await Auth.currentSession()).getAccessToken().getJwtToken()}` }
+          // return { Authorization: `Bearer ${(await Auth.currentSession()).getIdToken().getJwtToken()}` }
+          return {
+            Authorization: `Bearer ${(await Auth.currentSession())
+              .getIdToken()
+              .getJwtToken()}`,
+          };
+        },
+      },
+    ],
   },
 });
 

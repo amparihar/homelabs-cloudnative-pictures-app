@@ -45,14 +45,14 @@ export const Navbar = (props) => {
                 >
                   {userInfo.id}
                 </a>
-                
+
                 <div className="navbar-dropdown">
                   <a
                     href="/"
                     className="navbar-item"
                     onClick={(e) => e.preventDefault()}
                   >
-                    Username - {userInfo.username}
+                   Username - {userInfo.username}
                   </a>
                   <a
                     href="/"

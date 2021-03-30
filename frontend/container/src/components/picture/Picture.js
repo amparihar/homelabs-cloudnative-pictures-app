@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useToasts } from "react-toast-notifications";
 
-import { Auth, Storage } from "aws-amplify";
+import { Auth, Storage, API } from "aws-amplify";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import * as config from "../../config.json";
 import { PictureList } from "./";
+
 
 const getImageDetails = (image) => {
   let filenameOnly = image.key.replace("pictures/", "");
@@ -84,6 +86,34 @@ const Picture = () => {
     }
   };
 
+  const handlePictureDeletes = async (evt, data) => {
+    const keys = data.map((item) => item.key);
+    const promises = keys.map(async (key) => {
+      const params = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        response: true,
+        queryStringParameters: {
+          key: `private/${cognitoId.current}/pictures/${key}`,
+        },
+      };
+      return await API.del(config.api.name, config.api.path, params);
+    });
+    try {
+      setPicList((list) => ({ ...list, isLoading: true }));
+      await Promise.all(promises);
+      setPicList((list) => ({
+        ...list,
+        isLoading: false,
+        data: list.data.filter((item) => keys.indexOf(item.key) === -1),
+      }));
+    } catch (err) {
+      setPicList((list) => ({ ...list, isLoading: false }));
+      addToast(err.response || err, { appearance: "error" });
+    }
+  };
+
   return (
     <>
       <section className="section">
@@ -129,8 +159,11 @@ const Picture = () => {
             </div>
           </div>
         </div>
-        <div className="container" style={{marginTop:"10px"}}>
-          <PictureList pictureList={picList} />
+        <div className="container" style={{ marginTop: "10px" }}>
+          <PictureList
+            pictureList={picList}
+            deletePictures={handlePictureDeletes}
+          />
         </div>
       </section>
     </>

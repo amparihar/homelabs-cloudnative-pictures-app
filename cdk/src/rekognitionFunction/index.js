@@ -51,8 +51,8 @@ const saveImageLabels = async (key, labels) => {
   const params = {
     TableName: process.env.IMAGE_TABLE,
     Item: {
-      id: uuid.v4(),
-      image: key,
+      // id: uuid.v4(),
+      key: key,
       labels: labels.map((label) => label.Name),
     },
   };

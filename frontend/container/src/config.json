@@ -1,6 +1,8 @@
 {
   "api": {
-    "invokeUrl": ""
+    "invokeUrl": "https://1234567890.execute-api.ap-south-1.amazonaws.com/dev/",
+    "name": "pip-service-api",
+    "path" : "pictures"
   },
   "cognito": {
     "REGION": "ap-south-1",

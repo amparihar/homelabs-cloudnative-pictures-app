@@ -8,7 +8,12 @@ import { AuthContext } from "../../shared";
 import { ErrorSummary, ApiErrors, FormErrors } from "../../shared";
 
 const SignIn = ({ location, ...props }) => {
-  const { register, handleSubmit, errors: formErrors = {} } = useForm();
+  const {
+    register,
+    handleSubmit,
+    errors: formErrors = {},
+    formState,
+  } = useForm();
   const { authState, setAuthState } = useContext(AuthContext);
   const [apiErrors, setApiErrors] = useState([]);
 
@@ -18,7 +23,12 @@ const SignIn = ({ location, ...props }) => {
     const { username, password } = data;
     try {
       const user = await Auth.signIn(username, password);
-      setAuthState((state) => ({ ...state, signedIn: user ? true : false, user }));
+      setAuthState((state) => ({
+        ...state,
+        signedIn: user ? true : false,
+        user,
+      }));
+      return user;
     } catch (err) {
       setApiErrors((errors) => [err.message]);
     }
@@ -89,7 +99,14 @@ const SignIn = ({ location, ...props }) => {
             </div>
             <div className="field">
               <p className="control">
-                <button className="button is-success" type="submit">
+                <button
+                  className={
+                    formState.isSubmitting
+                      ? "button is-success is-loading"
+                      : "button is-success"
+                  }
+                  type="submit"
+                >
                   SIGN IN
                 </button>
               </p>

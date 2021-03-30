@@ -1,8 +1,9 @@
+import React from "react";
 import MaterialTable from "material-table";
 
 import { MatTableIcons } from "../../shared";
 
-const PictureList = ({ pictureList, ...props }) => {
+const PictureList = ({ pictureList, deletePictures }) => {
   const { isLoading, data } = pictureList;
   const columns = [
     {
@@ -22,8 +23,15 @@ const PictureList = ({ pictureList, ...props }) => {
       icons={MatTableIcons}
       isLoading={isLoading}
       options={{ search: true, selection: true }}
+      actions={[
+        {
+          tooltip: "Remove Selected Picture(s)",
+          icon: "delete",
+          onClick: deletePictures,
+        },
+      ]}
     />
   );
 };
 
-export default PictureList;
+export default React.memo(PictureList);

@@ -20,7 +20,7 @@ export class ServiceApi extends cdk.Construct {
       userPoolArns,
     } = props;
 
-    const serviceApi = new _apigw.RestApi(this, "pip-image-service-api", {
+    const serviceApi = new _apigw.RestApi(this, "pip-service-api", {
       description: "Service api for image operations",
       endpointConfiguration: {
         types: [_apigw.EndpointType.REGIONAL],
@@ -50,9 +50,9 @@ export class ServiceApi extends cdk.Construct {
           schema: _apigw.JsonSchemaVersion.DRAFT4,
           type: _apigw.JsonSchemaType.OBJECT,
           properties: {
-            id: { type: _apigw.JsonSchemaType.STRING, minLength: 1 },
+            key: { type: _apigw.JsonSchemaType.STRING, minLength: 1 },
           },
-          required: ["id"],
+          required: ["key"],
         },
       }
     );
@@ -63,7 +63,7 @@ export class ServiceApi extends cdk.Construct {
       requestTemplates: {
         "application/json": `#set($root = $input.path('$'))
             {
-              "imageId":"$root.id"
+              "imageKey":"$root.key"
             }`,
       },
       integrationResponses: [
@@ -98,13 +98,13 @@ export class ServiceApi extends cdk.Construct {
     const deleteImageIntegration = new _apigw.LambdaIntegration(deleteImageFn, {
       proxy: false,
       requestParameters: {
-        "integration.request.querystring.id": "method.request.querystring.id",
+        "integration.request.querystring.key": "method.request.querystring.key",
       },
       passthroughBehavior: _apigw.PassthroughBehavior.WHEN_NO_TEMPLATES,
       requestTemplates: {
         "application/json": `
             {
-              "imageId":"$input.params('id')"
+              "imageKey":"$input.params('key')"
             }`,
       },
       integrationResponses: [
@@ -136,7 +136,7 @@ export class ServiceApi extends cdk.Construct {
       ],
     });
 
-    const serviceApiImageRoot = serviceApi.root.addResource("image", {
+    const serviceApiImageRoot = serviceApi.root.addResource("pictures", {
       defaultCorsPreflightOptions: {
         allowOrigins: _apigw.Cors.ALL_ORIGINS,
         statusCode: 200,
@@ -227,7 +227,7 @@ export class ServiceApi extends cdk.Construct {
       authorizer: { authorizerId: apiAuthorizer.ref },
       authorizationType: _apigw.AuthorizationType.COGNITO,
       requestParameters: {
-        "method.request.querystring.id": true,
+        "method.request.querystring.key": true,
       },
       requestValidator: qsRequestValidator,
 

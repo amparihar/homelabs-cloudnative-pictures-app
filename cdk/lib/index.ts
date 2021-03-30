@@ -49,7 +49,7 @@ export class HomeLabsPipStack extends cdk.Stack {
     });
 
     const imageTable = new _dynamodb.Table(this, "image-table", {
-      partitionKey: { name: "id", type: _dynamodb.AttributeType.STRING },
+      partitionKey: { name: "key", type: _dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
