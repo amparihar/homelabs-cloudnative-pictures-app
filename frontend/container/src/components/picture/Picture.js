@@ -8,7 +8,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as config from "../../config.json";
 import { PictureList } from "./";
 
-
 const getImageDetails = (image) => {
   let filenameOnly = image.key.replace("pictures/", "");
   let modified = image.lastModified.toString();
@@ -86,7 +85,11 @@ const Picture = () => {
     }
   };
 
-  const handlePictureDeletes = async (evt, data) => {
+  const onPictureDeletes = async (evt, data) => {
+    const cfm = window.confirm(
+      `Are you sure to delete ${data.length} picture(s)?`
+    );
+    if (!cfm) return;
     const keys = data.map((item) => item.key);
     const promises = keys.map(async (key) => {
       const params = {
@@ -113,6 +116,11 @@ const Picture = () => {
       addToast(err.response || err, { appearance: "error" });
     }
   };
+
+  const handlePictureDeletes = useCallback(onPictureDeletes, [
+    setPicList,
+    addToast,
+  ]);
 
   return (
     <>

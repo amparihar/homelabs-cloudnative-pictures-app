@@ -30,7 +30,7 @@ const VerifyAccount = ({ history, location, ...props }) => {
   return (
     <>
       {!username && <Redirect to="/signup" />}
-      <section className="section">
+      <section className="section" style={{ maxWidth: "50%" }}>
         <div className="container">
           <ErrorSummary
             errors={apiErrors}

@@ -26,7 +26,7 @@ export class ServiceApi extends cdk.Construct {
         types: [_apigw.EndpointType.REGIONAL],
       },
       deployOptions: {
-        stageName: "dev",
+        stageName: "prod",
         //loggingLevel:_apigw.MethodLoggingLevel.OFF
       },
     });

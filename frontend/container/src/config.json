@@ -1,7 +1,7 @@
 {
   "api": {
-    "invokeUrl": "https://1234567890.execute-api.ap-south-1.amazonaws.com/dev/",
-    "name": "pip-service-api",
+    "invokeUrl": "https://1234567890.execute-api.ap-south-1.amazonaws.com/prod/",
+    "name": "service-api",
     "path" : "pictures"
   },
   "cognito": {

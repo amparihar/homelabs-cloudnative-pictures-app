@@ -26,7 +26,7 @@ const PictureList = ({ pictureList, deletePictures }) => {
       actions={[
         {
           tooltip: "Remove Selected Picture(s)",
-          icon: "delete",
+          icon: MatTableIcons.Delete,
           onClick: deletePictures,
         },
       ]}

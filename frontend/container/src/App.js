@@ -26,6 +26,7 @@ library.add(faLock, faUser, faEnvelope, faUpload);
 
 export const App = (props) => {
   const { authState } = useContext(AuthContext);
+
   return (
     <div>
       <BrowserRouter>
