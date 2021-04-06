@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Redirect } from "react-router-dom";
 import { Auth } from "aws-amplify";
 
-import { ErrorSummary, ApiErrors } from "../../shared";
+import { ErrorSummary, ApiErrors, FormErrors } from "../../shared";
 
 const VerifyAccount = ({ history, location, ...props }) => {
   const { state: { username = "" } = {} } = location || {};
@@ -36,6 +36,10 @@ const VerifyAccount = ({ history, location, ...props }) => {
             errors={apiErrors}
             apiErr={(errors) => <ApiErrors errors={errors} />}
           />
+          <ErrorSummary
+            errors={errors}
+            formErr={(errors) => <FormErrors errors={errors} />}
+          />
           <h1 className="title">Verify Account</h1>
           <p>
             Please fill out the form below with the verification code sent to
@@ -55,6 +59,7 @@ const VerifyAccount = ({ history, location, ...props }) => {
                   name="verificationcode"
                   aria-describedby="verificationcodeHelp"
                   placeholder="Enter Verification Code"
+                  autoComplete="off"
                   ref={register({
                     required: {
                       value: true,
@@ -62,17 +67,17 @@ const VerifyAccount = ({ history, location, ...props }) => {
                     },
                   })}
                 />
-                {errors?.verificationcode && (
+                {/* {errors?.verificationcode && (
                   <div className="message is-danger">
                     {errors.verificationcode?.message}
                   </div>
-                )}
+                )} */}
               </p>
             </div>
             <div className="field">
               <p className="control">
                 <button className="button is-success" type="submit">
-                  Verify account
+                  Verify Account
                 </button>
               </p>
             </div>

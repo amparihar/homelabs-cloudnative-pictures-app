@@ -23,7 +23,7 @@ const deleteFromTable = async (key) => {
 
   try {
     const queryResponse = await db.delete(params).promise();
-    return { message: "Image deleted" };
+    return "Image deleted";
   } catch (error) {
     console.log(`There was an error while deleting image data for ${key}`);
     console.log("error", error);

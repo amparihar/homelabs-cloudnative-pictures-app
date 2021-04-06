@@ -17,7 +17,7 @@ const PictureList = ({ pictureList, deletePictures }) => {
   ];
   return (
     <MaterialTable
-      title="My Pictures"
+      title="Your Pictures"
       columns={columns}
       data={data}
       icons={MatTableIcons}

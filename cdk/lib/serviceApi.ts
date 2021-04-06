@@ -111,7 +111,7 @@ export class ServiceApi extends cdk.Construct {
         {
           statusCode: "200",
           responseTemplates: {
-            "application/json": `{"status": "Ok", "data": $util.parseJson($input.body)}`,
+            "application/json": `{"status": "Ok", "data": $input.body}`,
           },
 
           responseParameters: {

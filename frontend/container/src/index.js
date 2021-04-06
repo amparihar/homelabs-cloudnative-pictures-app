@@ -1,5 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { BrowserRouter } from "react-router-dom";
 import Amplify, { Auth } from "aws-amplify";
 import { ToastProvider } from "react-toast-notifications";
 
@@ -46,7 +47,9 @@ ReactDOM.render(
   <React.StrictMode>
     <AuthContextProvider>
       <ToastProvider>
-        <App />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
       </ToastProvider>
     </AuthContextProvider>
   </React.StrictMode>,

@@ -23,7 +23,7 @@ export const Navbar = (props) => {
       {!authState.signedIn && <Redirect to="/signin" />}
       <nav className="navbar is-dark">
         <div className="navbar-menu">
-          <div className="navbar-start">
+          <div className="navbar-start" style={{ marginLeft: "100px" }}>
             <Link className="navbar-item" to="/home">
               Home
             </Link>
@@ -52,7 +52,7 @@ export const Navbar = (props) => {
                     className="navbar-item"
                     onClick={(e) => e.preventDefault()}
                   >
-                   Username - {userInfo.username}
+                    Username - {userInfo.username}
                   </a>
                   <a
                     href="/"
