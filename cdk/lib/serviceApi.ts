@@ -70,7 +70,7 @@ export class ServiceApi extends cdk.Construct {
         {
           statusCode: "200",
           responseTemplates: {
-            "application/json": `{"status": "Ok", "data": $util.parseJson($input.body)}`,
+            "application/json": `{"status": "Ok", "data": $input.body}`,
           },
 
           responseParameters: {
@@ -84,6 +84,7 @@ export class ServiceApi extends cdk.Construct {
           responseTemplates: {
             "application/json": JSON.stringify({
               status: "Error",
+              data:[],
               result: "$util.escapeJavaScript($input.path('$.errorMessage'))",
             }),
           },
@@ -125,6 +126,7 @@ export class ServiceApi extends cdk.Construct {
           responseTemplates: {
             "application/json": JSON.stringify({
               status: "Error",
+              data:[],
               result: "$util.escapeJavaScript($input.path('$.errorMessage'))",
             }),
           },

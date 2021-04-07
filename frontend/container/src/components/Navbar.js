@@ -2,21 +2,15 @@ import { useContext } from "react";
 import { Link, Redirect } from "react-router-dom";
 
 import { Auth } from "aws-amplify";
-import { useToasts } from "react-toast-notifications";
 
 import { AuthContext, useCurrentUserInfo } from "../shared";
 
 export const Navbar = (props) => {
   const { authState, setAuthState } = useContext(AuthContext);
   const { userInfo } = useCurrentUserInfo();
-  const { addToast } = useToasts();
   const handleSignout = async () => {
-    try {
-      await Auth.signOut();
-      setAuthState((state) => ({ ...state, signedIn: false, user: null }));
-    } catch (err) {
-      addToast(err.message || err, { appearance: "error" });
-    }
+    await Auth.signOut();
+    setAuthState((state) => ({ ...state, signedIn: false, user: null }));
   };
   return (
     <>

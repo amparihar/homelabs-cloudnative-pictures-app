@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useToasts } from "react-toast-notifications";
+import { toast } from "react-toastify";
 
 import { Auth, Storage, API } from "aws-amplify";
 
@@ -24,7 +24,7 @@ const Picture = () => {
     file: null,
   });
   const [picList, setPicList] = useState({ isLoading: false, data: [] });
-  const { addToast } = useToasts();
+
   // Cognito IdentityPoolId
   const cognitoId = useRef(null);
 
@@ -42,9 +42,9 @@ const Picture = () => {
       }));
     } catch (err) {
       setPicList((list) => ({ isLoading: false, data: [] }));
-      addToast(err.message || err, { appearance: "error" });
+      toast.error(err.message || err);
     }
-  }, [setPicList, addToast]);
+  }, [setPicList]);
 
   useEffect(() => {
     currentUserInfo().then(
@@ -75,13 +75,10 @@ const Picture = () => {
 
       listPictures();
 
-      addToast("Picture uploaded successfully", {
-        appearance: "success",
-        autoDismiss: true,
-      });
+      toast.success("Picture uploaded successfully");
     } catch (err) {
       setSelectedPic((pic) => ({ ...pic, uploading: false, file: null }));
-      addToast(err.message || err, { appearance: "error" });
+      toast.error(err.message || err);
     }
   };
 
@@ -113,13 +110,12 @@ const Picture = () => {
       }));
     } catch (err) {
       setPicList((list) => ({ ...list, isLoading: false }));
-      addToast(err.response || err, { appearance: "error" });
+      toast.error(err.response || err);
     }
   };
 
   const handlePictureDeletes = useCallback(onPictureDeletes, [
-    setPicList,
-    addToast,
+    setPicList
   ]);
 
   return (

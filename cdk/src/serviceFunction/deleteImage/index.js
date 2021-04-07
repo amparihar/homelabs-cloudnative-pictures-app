@@ -17,7 +17,7 @@ const deleteFromTable = async (key) => {
   const params = {
     TableName: process.env.IMAGE_TABLE,
     Key: {
-      key,
+      ikey: key,
     },
   };
 

@@ -52,7 +52,7 @@ const saveImageLabels = async (key, labels) => {
     TableName: process.env.IMAGE_TABLE,
     Item: {
       // id: uuid.v4(),
-      key: key,
+      ikey: key,
       labels: labels.map((label) => label.Name),
     },
   };

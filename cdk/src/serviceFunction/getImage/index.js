@@ -6,9 +6,9 @@ exports.run = async (event, context) => {
   const iKey = decodeS3Key(event.imageKey);
   const params = {
     TableName: process.env.IMAGE_TABLE,
-    KeyConditionExpression: "key=:key",
+    KeyConditionExpression: "ikey=:ikey",
     ExpressionAttributeValues: {
-      ":key": iKey,
+      ":ikey": iKey,
     },
   };
 

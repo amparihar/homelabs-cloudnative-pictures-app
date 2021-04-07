@@ -6,4 +6,6 @@ export { ApiErrors } from "./ApiErrors";
 export { useCurrentUserInfo } from "./UseCurrentUserInfo";
 export { useAsync } from "./UseAsync";
 
+export { default as Spinner } from "./Spinner";
+
 export { default as MatTableIcons } from "./MatTableIcons";

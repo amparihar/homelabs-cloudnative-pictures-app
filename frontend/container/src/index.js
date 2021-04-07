@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
 import Amplify, { Auth } from "aws-amplify";
-import { ToastProvider } from "react-toast-notifications";
+import { ToastContainer } from "react-toastify";
 
 import "./index.css";
 import * as config from "./config.json";
@@ -45,12 +45,11 @@ Amplify.configure({
 
 ReactDOM.render(
   <React.StrictMode>
+    <ToastContainer />
     <AuthContextProvider>
-      <ToastProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </ToastProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </AuthContextProvider>
   </React.StrictMode>,
   document.getElementById("root")
