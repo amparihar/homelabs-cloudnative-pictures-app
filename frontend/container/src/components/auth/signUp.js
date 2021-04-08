@@ -13,6 +13,7 @@ const SignUp = ({ history, ...props }) => {
     handleSubmit,
     errors: formErrors = {},
     getValues,
+    formState
   } = useForm();
 
   const [apiErrors, setApiErrors] = useState([]);
@@ -148,7 +149,11 @@ const SignUp = ({ history, ...props }) => {
           </div>
           <div className="field">
             <p className="control">
-              <button type="submit" className="button is-success">
+              <button type="submit" className={
+                    formState.isSubmitting
+                      ? "button is-success is-loading"
+                      : "button is-success"
+                  }>
                 SIGN UP
               </button>
             </p>

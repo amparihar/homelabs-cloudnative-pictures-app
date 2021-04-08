@@ -8,7 +8,7 @@ import { ErrorSummary, ApiErrors, FormErrors } from "../../shared";
 const VerifyAccount = ({ history, location, ...props }) => {
   const { state: { username = "" } = {} } = location || {};
 
-  const { register, handleSubmit, errors } = useForm();
+  const { register, handleSubmit, errors, formState } = useForm();
   const [apiErrors, setApiErrors] = useState([]);
 
   const onSubmit = async (data) => {
@@ -23,7 +23,7 @@ const VerifyAccount = ({ history, location, ...props }) => {
       };
       history.push(location);
     } catch (err) {
-      setApiErrors((errors) => [err.message || err]);
+      setApiErrors((prev) => [err.message || err]);
     }
   };
 
@@ -76,7 +76,14 @@ const VerifyAccount = ({ history, location, ...props }) => {
             </div>
             <div className="field">
               <p className="control">
-                <button className="button is-success" type="submit">
+                <button
+                  className={
+                    formState.isSubmitting
+                      ? "button is-success is-loading"
+                      : "button is-success"
+                  }
+                  type="submit"
+                >
                   Verify Account
                 </button>
               </p>
