@@ -1,16 +1,16 @@
 {
   "api": {
-    "invokeUrl": "https://dne7jw65z7.execute-api.ap-south-1.amazonaws.com/prod/",
+    "invokeUrl": "https://1234567890.execute-api.ap-south-1.amazonaws.com/prod/",
     "name": "service-api",
     "path": "pictures"
   },
   "cognito": {
     "REGION": "ap-south-1",
-    "USER_POOL_ID": "ap-south-1_OGXiXI04B",
-    "APP_CLIENT_ID": "324icclhkheq36kjhoe0nfj9g6",
-    "IDENTITY_POOL_ID": "ap-south-1:12069ee9-c624-4f00-a7bc-dc9052cf71ae"
+    "USER_POOL_ID": "",
+    "APP_CLIENT_ID": "",
+    "IDENTITY_POOL_ID": ""
   },
   "s3": {
-    "bucket": "homelabs-pip-stack-dev-imagebuckete8f90778-55erd61pgecu"
+    "bucket": ""
   }
 }
