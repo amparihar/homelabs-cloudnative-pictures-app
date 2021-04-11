@@ -21,6 +21,8 @@ import {
 } from "./components/auth";
 import { PicturePage } from "./components/picture";
 import { PictureGalleryPage } from "./components/gallery/PictureGallery";
+
+import { PageNotFound } from "./components/PageNotFound";
 import { AuthContext } from "./shared";
 
 library.add(faLock, faUser, faEnvelope, faUpload);
@@ -71,6 +73,7 @@ export const App = withRouter(({ history }) => {
             component={PictureGalleryPage}
           />
           <ProtectedRoute exact path="/picture" component={PicturePage} />
+          <Route component={PageNotFound} />
         </Switch>
       </div>
     </div>

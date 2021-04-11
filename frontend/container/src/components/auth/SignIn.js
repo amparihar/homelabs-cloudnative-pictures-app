@@ -89,21 +89,18 @@ const SignIn = ({ location, ...props }) => {
               </p>
             </div>
             <div className="columns">
-              <div className="column is-one-fifth">
-                No Account?<Link to="/signup">Create Account</Link>
+              <div className="column">
+                No Account? <Link to="/signup">Create Account</Link>
               </div>
-              {/* <div className="column">
-                Forgot your Password?
-                <Link to="/forgotpassword">Reset Password</Link>
-              </div> */}
+              
             </div>
             <div className="field">
               <p className="control">
                 <button
                   className={
                     formState.isSubmitting
-                      ? "button is-success is-loading"
-                      : "button is-success"
+                      ? "button is-info is-loading"
+                      : "button is-primary"
                   }
                   type="submit"
                 >

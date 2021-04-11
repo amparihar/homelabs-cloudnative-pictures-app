@@ -1,0 +1,28 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: EKS-homelabs-pictures-cluster
+  region: ap-south-1
+
+nodeGroups:
+  - name: ng-public
+    instanceType: t2.medium
+    desiredCapacity: 2
+    ssh: 
+      publicKeyName: eks-homelabs
+    availabilityZones: ["ap-south-1a", "ap-south-1b"]
+    labels:
+      nodegroup-type: public-workload
+      instance-type: onDemand
+  - name: ng-private
+    instanceType: t2.medium
+    desiredCapacity: 2
+    maxSize: 5
+    privateNetworking: true
+    ssh: 
+      publicKeyName: eks-homelabs
+    availabilityZones: ["ap-south-1a", "ap-south-1b"]
+    labels:
+      nodegroup-type: private-workload
+      instance-type: onDemand

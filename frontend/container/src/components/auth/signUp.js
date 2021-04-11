@@ -61,7 +61,7 @@ const SignUp = ({ history, ...props }) => {
                 name="username"
                 autoComplete="off"
                 aria-describedby="userNameHelp"
-                placeholder="Enter Username"
+                placeholder="Enter username"
                 ref={register({ required: "Username is required" })}
               />
               <span className="icon is-small is-left">
@@ -139,20 +139,16 @@ const SignUp = ({ history, ...props }) => {
             </p>
           </div>
           <div className="columns">
-            <div className="column is-one-fifth">
-              <Link to="/signin">Sign In</Link>
+            <div className="column">
+              Already have an Account? <Link to="/signin">Sign In</Link>
             </div>
-            {/* <div className="column">
-              Forgot your Password?
-              <Link to="/forgotpassword">Reset password</Link>
-            </div> */}
           </div>
           <div className="field">
             <p className="control">
               <button type="submit" className={
                     formState.isSubmitting
-                      ? "button is-success is-loading"
-                      : "button is-success"
+                      ? "button is-info is-loading"
+                      : "button is-primary"
                   }>
                 SIGN UP
               </button>

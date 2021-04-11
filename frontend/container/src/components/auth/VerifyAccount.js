@@ -79,8 +79,8 @@ const VerifyAccount = ({ history, location, ...props }) => {
                 <button
                   className={
                     formState.isSubmitting
-                      ? "button is-success is-loading"
-                      : "button is-success"
+                      ? "button is-info is-loading"
+                      : "button is-primary"
                   }
                   type="submit"
                 >
