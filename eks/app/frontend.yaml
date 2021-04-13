@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: pictures-web-deployment
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pictures
+      tier: web
+  template:
+    spec:
+      containers:
+        - name: pictures-web
+          image: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/homelabs:pictures-web.v1
+          ports:
+            - containerPort: 3000
+          resources:
+            limits:
+              cpu: 300m
+              memory: 512Mi
+            requests:
+              cpu: 300m
+              memory: 512Mi
+    metadata:
+      labels:
+        app: pictures
+        tier: web
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pictures-web-service
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 3000
+  selector:
+    app: pictures
+    tier: web

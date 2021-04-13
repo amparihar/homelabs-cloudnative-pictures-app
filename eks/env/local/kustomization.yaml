@@ -1,0 +1,12 @@
+resources:
+  - namespace.yaml
+bases:
+  - ../../app
+patchesStrategicMerge:
+  - service.yaml
+images:
+  - name: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/homelabs:pictures-web.v1
+    newName: aparihar/pictures-web.v1
+    newTag: latest
+
+namespace: local

@@ -1,0 +1,6 @@
+resources:
+  - namespace.yml
+bases:
+  - ../../app
+  
+namespace: prod
