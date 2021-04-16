@@ -14,16 +14,10 @@ spec:
     spec:
       containers:
         - name: pictures-web
-          image: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/homelabs:pictures-web.v1
+          image: aparihar/homelabs:pictures-web
           ports:
             - containerPort: 3000
-          resources:
-            limits:
-              cpu: 300m
-              memory: 512Mi
-            requests:
-              cpu: 300m
-              memory: 512Mi
+          
     metadata:
       labels:
         app: pictures
@@ -34,13 +28,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: pictures-web-service
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+  
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
-    - port: 80
-      targetPort: 3000
+  - port: 80
+    targetPort: 3000
+    nodePort: 30010
   selector:
     app: pictures
     tier: web

@@ -2,5 +2,12 @@ resources:
   - namespace.yml
 bases:
   - ../../app
+patchesStrategicMerge:
+  - set_loadbalancer_service.yaml
+  - set_pod_resources.yaml
+images:
+  - name: aparihar/homelabs:pictures-web
+    newName: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/homelabs
+    newTag: pictures-web
   
 namespace: prod

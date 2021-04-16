@@ -4,12 +4,8 @@ bases:
   - ../../app
 patchesStrategicMerge:
   - set_pod_resources.yaml
-  - set_nodeport_service.yaml
-images:
-  - name: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/homelabs:pictures-web.v1
-    newName: aparihar/pictures-web.v1
-    newTag: latest
 
-namespace: local
+
+namespace: local-mk
 #namePrefix: local-
 #nameSuffix: v1
