@@ -54,7 +54,7 @@ const Nav = ({ history }) => {
 
   return (
     <>
-      {!authState.signedIn && <Redirect to="/signin" />}
+      {/* {!authState.signedIn && <Redirect to="/signin" />} */}
       <nav className="navbar is-dark">
         <div className="navbar-menu">
           <div className="navbar-start" style={{ marginLeft: "100px" }}>
