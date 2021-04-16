@@ -6,8 +6,9 @@ import { useForm } from "react-hook-form";
 import { Auth } from "aws-amplify";
 import { AuthContext } from "../../shared";
 import { ErrorSummary, ApiErrors, FormErrors } from "../../shared";
+import "../../styles/auth-style.css";
 
-const SignIn = ({ location, ...props }) => {
+const SignIn = ({ location }) => {
   const {
     register,
     handleSubmit,
@@ -50,9 +51,10 @@ const SignIn = ({ location, ...props }) => {
 
           <form onSubmit={handleSubmit(onSignIn)}>
             <div className="field">
+              <label className="label">User Name</label>
               <p className="control has-icons-left">
                 <input
-                  className={formErrors?.username ? "input is-danger" : "input"}
+                  className={`input ${formErrors?.username ? "is-danger" : ""}`}
                   type="text"
                   id="username"
                   name="username"
@@ -67,9 +69,10 @@ const SignIn = ({ location, ...props }) => {
               </p>
             </div>
             <div className="field">
+              <label className="label">Password</label>
               <p className="control has-icons-left">
                 <input
-                  className={formErrors?.username ? "input is-danger" : "input"}
+                  className={`input ${formErrors?.password ? "is-danger" : ""}`}
                   type="password"
                   id="password"
                   name="password"
@@ -92,7 +95,6 @@ const SignIn = ({ location, ...props }) => {
               <div className="column">
                 No Account? <Link to="/signup">Create Account</Link>
               </div>
-              
             </div>
             <div className="field">
               <p className="control">

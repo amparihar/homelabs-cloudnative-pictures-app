@@ -1,4 +1,4 @@
-header {
+/* header {
   background-color: black;
   position: fixed;
   top: 0;
@@ -35,7 +35,7 @@ header li a:hover {
 .to-link:hover {
   background: none;
   text-decoration: none;
-}
+} */
 
 .navbar-item:hover {
   color:red !important;

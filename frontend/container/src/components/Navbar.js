@@ -1,17 +1,57 @@
-import { useContext } from "react";
-import { Link, Redirect } from "react-router-dom";
+import { useContext, useEffect } from "react";
+import { Link, Redirect, withRouter } from "react-router-dom";
 
-import { Auth } from "aws-amplify";
+import { Auth, Hub } from "aws-amplify";
 
 import { AuthContext, useCurrentUserInfo } from "../shared";
 
-export const Navbar = (props) => {
+const Nav = ({ history }) => {
   const { authState, setAuthState } = useContext(AuthContext);
   const { userInfo } = useCurrentUserInfo();
   const handleSignout = async () => {
     await Auth.signOut();
-    setAuthState((state) => ({ ...state, signedIn: false, user: null }));
   };
+
+  useEffect(() => {
+    const signOut = () => {
+      setAuthState((prev) => ({ ...prev, user: null, signedIn: false }));
+      history.push("/signout");
+    };
+    const hubListener = (data) => {
+      switch (data.payload.event) {
+        case "tokenRefresh": {
+          break;
+        }
+        case "signOut":
+        case "tokenRefresh_failure": {
+          signOut();
+          break;
+        }
+        default: {
+        }
+      }
+    };
+    const storageListener = (e) => {
+      if (
+        authState &&
+        authState.user &&
+        e.key === authState.user.userDataKey &&
+        e.oldValue &&
+        !e.newValue
+      ) {
+        signOut();
+      }
+    };
+
+    Hub.listen("auth", hubListener);
+    window.addEventListener("storage", storageListener);
+
+    return () => {
+      window.removeEventListener("storage", storageListener);
+      Hub.remove("auth", hubListener);
+    };
+  }, [history, authState, setAuthState]);
+
   return (
     <>
       {!authState.signedIn && <Redirect to="/signin" />}
@@ -77,3 +117,5 @@ export const Navbar = (props) => {
     </>
   );
 };
+
+export const Navbar = withRouter(Nav);

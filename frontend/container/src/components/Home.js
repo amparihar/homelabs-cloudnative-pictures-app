@@ -1,49 +1,36 @@
-import React from "react";
+import { useState } from "react";
+import * as data from "../data/Home.json";
 
-const Home = (props) => {
+const Home = () => {
+  const cards = useState(data.cards)[0];
   return (
-    <section className="container">
-      <div className="columns features">
-        <div className="column is-4">
-          <div className="card is-shady">
-            <div className="card-content">
-              <div className="content">
-                <h4>AWS Rekognition</h4>
-                <p>
-                  <a href="https://aws.amazon.com/rekognition/">Learn more</a>
-                </p>
-              </div>
+    <section className="section">
+      <section className="container">
+        <div className="columns features">
+          {cards.map((card, i) => (
+            <div key={i} className="column is-4">
+              {card.columns.map((column, j) => (
+                <div
+                  key={j}
+                  className="card is-shady"
+                  style={{ marginTop: "10px" }}
+                >
+                  <div className="card-content">
+                    <div className="content">
+                      <h4>{column.title}</h4>
+                      <p>
+                        <a href={column.uri} target="_blank" rel="noreferrer">
+                          Learn more
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          ))}
         </div>
-        <div className="column is-4">
-          <div className="card is-shady">
-            <div className="card-content">
-              <div className="content">
-                <h4>Amazon S3</h4>
-                
-                <p>
-                  <a href="https://aws.amazon.com/s3/">Learn more</a>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="column is-4">
-          <div className="card is-shady">
-            <div className="card-content">
-              <div className="content">
-                <h4>Amazon DynamoDB</h4>
-                <p>
-                  <a href="https://aws.amazon.com/dynamodb/">Learn more</a>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        
-      </div>
+      </section>
     </section>
   );
 };

@@ -32,6 +32,9 @@ export class Cognito extends cdk.Construct {
       {
         userPool: this.userPool,
         generateSecret: false,
+        refreshTokenValidity: cdk.Duration.minutes(60),
+        accessTokenValidity: cdk.Duration.minutes(30),
+        idTokenValidity: cdk.Duration.minutes(30),
       }
     );
 

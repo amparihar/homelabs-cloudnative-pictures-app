@@ -54,6 +54,9 @@ const Picture = () => {
 
   useEffect(() => {
     listPictures();
+    return () => {
+      //API.cancel(listPictures(), "AbortError");
+    }
   }, [listPictures]);
 
   const handleOnChange = (e) => {

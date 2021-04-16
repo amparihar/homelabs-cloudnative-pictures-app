@@ -62,6 +62,9 @@ const PictureGallery = () => {
         }))
       );
     })();
+    return () => {
+      //API.cancel(getPictures());
+    }
   }, []);
   return (
     <>

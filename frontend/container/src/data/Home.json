@@ -1,0 +1,52 @@
+{
+  "cards": [
+    {
+      "columns": [
+        {
+          "title": "AWS Rekognition",
+          "uri": "https://aws.amazon.com/rekognition/"
+        },
+        {
+          "title": "Amazon Cognito",
+          "uri": "https://aws.amazon.com/cognito/"
+        },
+        {
+          "title": "AWS Amplify",
+          "uri": "https://aws.amazon.com/amplify/"
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "title": "Amazon S3",
+          "uri": "https://aws.amazon.com/s3/"
+        },
+        {
+          "title": "Amazon SQS",
+          "uri": "https://aws.amazon.com/sqs/"
+        },
+        {
+          "title": "AWS Lambda",
+          "uri": "https://aws.amazon.com/lambda/"
+        }
+      ]
+    },
+    {
+      "columns": [
+        {
+          "title": "Amazon DynamoDB",
+          "uri": "https://aws.amazon.com/dynamodb/"
+        },
+        {
+          "title": "AWS CDK",
+          "uri": "https://aws.amazon.com/cdk/"
+        },
+        {
+          "title": "Amazon API Gateway",
+          "uri": "https://aws.amazon.com/api-gateway/"
+        }
+      ]
+    }
+  ]
+}

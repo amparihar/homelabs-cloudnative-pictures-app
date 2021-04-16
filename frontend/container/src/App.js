@@ -1,5 +1,5 @@
-import React, { useContext, useEffect } from "react";
-import { Switch, Route, Redirect, withRouter } from "react-router-dom";
+import React, { useContext } from "react";
+import { Switch, Route, Redirect } from "react-router-dom";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -7,6 +7,7 @@ import {
   faUser,
   faEnvelope,
   faUpload,
+  faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
 
 import { Header } from "./components/Header";
@@ -16,6 +17,7 @@ import {
   ProtectedRoute,
   SignInPage,
   SignUpPage,
+  SignOutPage,
   VerifyAccountPage,
   WelcomePage,
 } from "./components/auth";
@@ -25,30 +27,10 @@ import { PictureGalleryPage } from "./components/gallery/PictureGallery";
 import { PageNotFound } from "./components/PageNotFound";
 import { AuthContext } from "./shared";
 
-library.add(faLock, faUser, faEnvelope, faUpload);
+library.add(faLock, faUser, faEnvelope, faUpload, faInfoCircle);
 
-export const App = withRouter(({ history }) => {
-  const { authState, setAuthState } = useContext(AuthContext);
-
-  useEffect(() => {
-    const storageHandler = (e) => {
-      if (
-        authState &&
-        authState.user &&
-        e.key === authState.user.userDataKey &&
-        e.oldValue &&
-        !e.newValue
-      ) {
-        setAuthState((prev) => ({ ...prev, user: null, signedIn: false }));
-        history.push("/signin");
-      }
-    };
-    window.addEventListener("storage", storageHandler);
-
-    return () => {
-      window.removeEventListener("storage", storageHandler);
-    };
-  }, [authState, history, setAuthState]);
+export const App = () => {
+  const { authState } = useContext(AuthContext);
 
   return (
     <div>
@@ -73,9 +55,10 @@ export const App = withRouter(({ history }) => {
             component={PictureGalleryPage}
           />
           <ProtectedRoute exact path="/picture" component={PicturePage} />
+          <Route exact path="/signout" component={SignOutPage} />
           <Route component={PageNotFound} />
         </Switch>
       </div>
     </div>
   );
-});
+};
