@@ -6,6 +6,6 @@ patchesStrategicMerge:
   - set_pod_resources.yaml
 
 
-namespace: local-mk
+namespace: local
 #namePrefix: local-
 #nameSuffix: v1
