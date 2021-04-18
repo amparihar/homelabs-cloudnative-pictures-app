@@ -1,13 +1,15 @@
 resources:
-  - namespace.yml
+  - namespace.yaml
+  # - viewer_role.yaml
+  # - viewer_role_binding.yaml
 bases:
   - ../../app
 patchesStrategicMerge:
-  - set_loadbalancer_service.yaml
+  - set_elb.yaml
   - set_pod_resources.yaml
 images:
   - name: aparihar/homelabs:pictures-web
     newName: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/homelabs
     newTag: pictures-web
   
-namespace: prod
+namespace: production

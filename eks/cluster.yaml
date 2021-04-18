@@ -7,12 +7,15 @@ metadata:
 
 nodeGroups:
   - name: ng-public
-    instanceType: t2.medium
-    desiredCapacity: 2
+    instanceType: t2.small
+    desiredCapacity: 3
     maxSize: 5
     ssh:
       publicKeyName: eks-homelabs-keypair
     availabilityZones: ["ap-south-1a", "ap-south-1b"]
+    iam:
+      withAddonPolicies:
+        autoScaler: true
     labels:
       nodegroup-type: public-workload
       instance-type: onDemand

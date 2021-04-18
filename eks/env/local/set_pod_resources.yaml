@@ -9,9 +9,9 @@ spec:
         - name: pictures-web
           resources:
             limits:
-              cpu: 300m
+              cpu: 100m
               memory: 300Mi
             requests:
-              cpu: 300m
+              cpu: 100m
               memory: 300Mi
             

@@ -6,9 +6,9 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
 spec:
   type: LoadBalancer
-  ports:
-    - port: 80
-      targetPort: 3000
-  selector:
-    app: pictures
-    tier: web
+  # ports:
+  #   - port: 80
+  #     targetPort: 3000
+  # selector:
+  #   app: pictures
+  #   tier: web

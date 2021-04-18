@@ -4,6 +4,7 @@ bases:
   - ../../app
 patchesStrategicMerge:
   - set_pod_resources.yaml
+  - set_nodePort.yaml
 
 
 namespace: local
