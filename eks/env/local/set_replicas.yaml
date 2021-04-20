@@ -1,0 +1,8 @@
+apiVersion: apps/v2
+kind: Deployment
+
+metadata:
+  name: pictures-web-deployment
+
+spec:
+  replicas: 1

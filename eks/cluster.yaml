@@ -2,7 +2,7 @@ apiVersion: eksctl.io/v1alpha5
 kind: ClusterConfig
 
 metadata:
-  name: EKS-homelabs-pictures
+  name: eks-homelabs-pictures
   region: ap-south-1
 
 nodeGroups:
@@ -19,3 +19,12 @@ nodeGroups:
     labels:
       nodegroup-type: public-workload
       instance-type: onDemand
+
+fargateProfiles:
+  # - name: fp-default
+  #   selectors:
+  #     - namespace: kube-system
+
+  - name: fp-development
+    selectors: 
+      - namespace: development

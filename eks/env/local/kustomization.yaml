@@ -3,6 +3,7 @@ resources:
 bases:
   - ../../app
 patchesStrategicMerge:
+  - set_replicas.yaml
   - set_pod_resources.yaml
   - set_nodePort.yaml
 
