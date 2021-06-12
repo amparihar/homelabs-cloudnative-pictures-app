@@ -1,5 +1,8 @@
-variable "name" {
-  default = "eks-fargate-tf-homelabs-pictures-vpc"
+variable "app_name" {
+  default = ""
+}
+variable "stage_name" {
+  default = ""
 }
 variable "create_vpc" {}
 variable "aws_availability_zones" {}

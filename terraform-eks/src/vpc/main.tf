@@ -9,6 +9,10 @@ resource "aws_vpc" "main" {
   cidr_block           = var.cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
+
+  tags = {
+    Name = "vpc-${var.app_name}-${var.stage_name}-${count.index + 1}"
+  }
 }
 
 # One public and one private subnet in 2 AZs
@@ -21,7 +25,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                        = "public_subnet_${local.azs[count.index]}"
+    Name                                        = "public-subnet-${var.app_name}-${var.stage_name}-${local.azs[count.index]}-${count.index + 1}"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
     "kubernetes.io/role/elb"                    = "1"
   }
@@ -34,7 +38,7 @@ resource "aws_subnet" "private" {
   cidr_block        = element(var.private_subnets, count.index)
 
   tags = {
-    Name                                        = "private_subnet_${local.azs[count.index]}"
+    Name                                        = "private-subnet-${var.app_name}-${var.stage_name}-${local.azs[count.index]}-${count.index + 1}"
     "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
@@ -90,6 +94,10 @@ resource "aws_route_table_association" "private" {
 resource "aws_internet_gateway" "main" {
   count  = local.create_vpc ? 1 : 0
   vpc_id = aws_vpc.main[0].id
+
+  tags = {
+    Name = "igw-${var.app_name}-${var.stage_name}-${count.index + 1}"
+  }
 }
 
 # NAT g/w for private subnets
@@ -98,12 +106,19 @@ resource "aws_nat_gateway" "main" {
   count         = local.create_vpc ? length(var.private_subnets) : 0
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
+
+  tags = {
+    Name = "natgw-${var.app_name}-${var.stage_name}-${count.index + 1}"
+  }
 }
 
 resource "aws_eip" "nat" {
   count      = local.create_vpc ? length(var.private_subnets) : 0
   vpc        = true
   depends_on = [aws_internet_gateway.main]
+  tags = {
+    Name = "eip-${var.app_name}-${var.stage_name}-${count.index + 1}"
+  }
 }
 
 # Outputs
@@ -118,8 +133,4 @@ output "public_subnet_ids" {
 
 output "private_subnet_ids" {
   value = aws_subnet.private.*.id
-}
-
-output "subnet_ids" {
-  value = concat(aws_subnet.public.*.id, aws_subnet.private.*.id)
 }

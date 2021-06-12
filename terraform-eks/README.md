@@ -10,6 +10,6 @@ TODO: Guide users through getting your code up and running on their own system. 
 
 # Build and Test
 terraform init
-terraform plan -out out.execution-plan
-terraform apply out.execution-plan
+terraform plan -out out.exec-plan
+terraform apply out.exec-plan
 terraform destroy 

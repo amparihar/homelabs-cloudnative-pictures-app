@@ -5,7 +5,7 @@ variable "aws_regions" {
   type = map(string)
 }
 variable "create_vpc" {
-  type = bool
+  type    = bool
   default = true
 }
 variable "vpc_cidr" {
@@ -17,6 +17,14 @@ variable "private_subnets" {
 variable "public_subnets" {
   type = list(string)
 }
+variable "app_name" {
+  type    = string
+  default = "Homelabs Pictures"
+}
+variable "stage_name" {
+  type    = string
+  default = "non-prod"
+}
 variable "cluster_name" {
-  default = "eks-fargate-tf-homelabs-pictures"
+  default = "homelabs-pictures-eks-fargate-terraform-cluster"
 }

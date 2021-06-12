@@ -1,10 +1,10 @@
 resource "aws_eks_cluster" "main" {
-  name                      = var.cluster_name
+  name = var.cluster_name
   # control plane logging to enable
   enabled_cluster_log_types = ["api", "audit", "authenticator", "scheduler", "controllerManager"]
 
   vpc_config {
-    subnet_ids = var.subnet_ids
+    subnet_ids = concat(var.public_subnet_ids, var.private_subnet_ids)
   }
   depends_on = [
     aws_iam_role_policy_attachment.AmazonEKSClusterPolicy,
@@ -13,6 +13,10 @@ resource "aws_eks_cluster" "main" {
   ]
 
   role_arn = aws_iam_role.eks_cluster_role.arn
+
+  tags = {
+    Name = "eks-cluster-${var.app_name}-${var.stage_name}"
+  }
 }
 
 resource "aws_iam_role" "eks_cluster_role" {
@@ -62,12 +66,11 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSClusterCloudWatchPolicy" {
   role       = aws_iam_role.eks_cluster_role.name
 }
 
-
-
-module "fargate_profile" {
+module "default_fargate_profile" {
   source              = "./fargate"
+  profile_name        = "fp-default"
   cluster_name        = aws_eks_cluster.main.name
-  subnet_ids          = var.subnet_ids
+  subnet_ids          = var.private_subnet_ids
   selector_namespaces = ["default", "kube-system", "development", "production"]
 }
 
@@ -79,10 +82,10 @@ output "eks_cluster_status" {
   value = aws_eks_cluster.main.status
 }
 
-output "fargate_profile_id" {
-  value = module.fargate_profile.id
+output "default_fargate_profile_id" {
+  value = module.default_fargate_profile.id
 }
 
-output "fargate_profile_status" {
-  value = module.fargate_profile.status
+output "default_fargate_profile_status" {
+  value = module.default_fargate_profile.status
 }

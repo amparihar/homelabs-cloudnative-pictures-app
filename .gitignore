@@ -13,4 +13,4 @@ cdk.out
 
 #  Local .terraform directories
 **/.terraform/*
-
+*out.exec-plan*
