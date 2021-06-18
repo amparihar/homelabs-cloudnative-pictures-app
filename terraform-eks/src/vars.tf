@@ -26,5 +26,10 @@ variable "stage_name" {
   default = "non-prod"
 }
 variable "cluster_name" {
-  default = "homelabs-pictures-eks-fargate-terraform-cluster"
+  type = string
+  description = "Choose a name for the EKS Cluster."
+  validation {
+    condition     = length(var.cluster_name) > 0
+    error_message = "Cluster Name is required."
+  }
 }
