@@ -42,6 +42,10 @@ output "eks_cluster_id" {
   value = module.cluster.eks_cluster_id
 }
 
+output "eks_cluster_name" {
+  value = var.cluster_name
+}
+
 output "eks_cluster_status" {
   value = module.cluster.eks_cluster_status
 }
