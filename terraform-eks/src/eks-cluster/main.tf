@@ -1,7 +1,7 @@
 resource "aws_eks_cluster" "main" {
   name = var.cluster_name
   # control plane logging to enable
-  enabled_cluster_log_types = ["api", "audit", "authenticator", "scheduler", "controllerManager"]
+  enabled_cluster_log_types = var.enabled_cluster_log_types
 
   vpc_config {
     subnet_ids = concat(var.public_subnet_ids, var.private_subnet_ids)
@@ -67,11 +67,61 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSClusterCloudWatchPolicy" {
 }
 
 module "default_fargate_profile" {
-  source              = "./fargate"
-  profile_name        = "fp-default"
-  cluster_name        = aws_eks_cluster.main.name
-  subnet_ids          = var.private_subnet_ids
-  selector_namespaces = ["default", "kube-system", "development", "production"]
+  source       = "./fargate"
+  profile_name = "fp-default"
+  cluster_name = aws_eks_cluster.main.name
+  subnet_ids   = var.private_subnet_ids
+  selectors    = [{ namespace = "default", labels = {} }, { namespace = "kube-system", labels = { k8s-app = "kube-dns" } }, { namespace = "production", labels = {} }]
+}
+
+# codeDNS patch
+# https://docs.aws.amazon.com/eks/latest/userguide/fargate-getting-started.html#fargate-gs-coredns
+
+data "aws_eks_cluster_auth" "main" {
+  name = aws_eks_cluster.main.name
+}
+
+data "template_file" "kubeconfig" {
+  template = <<EOF
+apiVersion: v1
+kind: Config
+current-context: terraform
+clusters:
+- name: main
+  cluster:
+    certificate-authority-data: ${aws_eks_cluster.main.certificate_authority.0.data}
+    server: ${aws_eks_cluster.main.endpoint}
+contexts:
+- name: terraform
+  context:
+    cluster: main
+    user: terraform
+users:
+- name: terraform
+  user:
+    token: ${data.aws_eks_cluster_auth.main.token}
+EOF
+
+  depends_on = [
+    data.aws_eks_cluster_auth.main
+  ]
+}
+
+resource "null_resource" "coredns_patch" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<EOF
+kubectl --kubeconfig=<(echo '${data.template_file.kubeconfig.rendered}') \
+  patch deployment coredns \
+  --namespace kube-system \
+  --type=json \
+  -p='[{"op": "remove", "path": "/spec/template/metadata/annotations", "value": "eks.amazonaws.com/compute-type"}]'
+EOF
+  }
+  depends_on = [
+    aws_eks_cluster.main,
+    module.default_fargate_profile.id
+  ]
 }
 
 output "eks_cluster_id" {

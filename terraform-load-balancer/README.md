@@ -12,11 +12,11 @@ Change into the aws-load-balancer-controller directory and create the resources.
 cd aws-load-balancer-controller
 terraform init
 terraform validate
-terraform plan -var=cluster_name=<<CLUSTERNAME>> -var=vpc_id=<<VPCID>>
-terraform apply -var=cluster_name=<<CLUSTERNAME>> -var=vpc_id=<<VPCID>>
+terraform plan -out <<FILENAME>> -var=cluster_name=<<CLUSTERNAME>> -var=vpc_id=<<VPCID>>
+terraform apply <<FILENAME>>
 
 2. Deleting the Cluster
 
-terraform destroy -var=cluster_name=<<CLUSTERNAME>> -var=vpc_id=<<VPCID>>
+terraform destroy -out <<FILENAME>> -var=cluster_name=<<CLUSTERNAME>> -var=vpc_id=<<VPCID>>
 
 

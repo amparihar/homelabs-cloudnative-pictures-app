@@ -12,12 +12,12 @@ Change into the src directory and create the EKS cluster infrastructure.
 cd src
 terraform init
 terraform validate
-terraform plan -var=cluster_name=<<CLUSTERNAME>>
-terraform apply -var=cluster_name=<<CLUSTERNAME>>
+terraform plan -out <<FILENAME>> -var=cluster_name=<<CLUSTERNAME>>
+terraform apply <<FILENAME>>
 
 2. Deleting the Cluster
 First, delete the K8s resources(if any e.g load balancer) followed by the EKS Cluster
 
 cd src
-terraform destroy -var=cluster_name=<<CLUSTERNAME>>
+terraform destroy 
 

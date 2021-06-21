@@ -4,6 +4,6 @@ variable "subnet_ids" {
   type    = list(string)
   default = []
 }
-variable "selector_namespaces" {
-  type = list(string)
+variable "selectors" {
+  type = list(object({ namespace : string, labels : map(string) }))
 }

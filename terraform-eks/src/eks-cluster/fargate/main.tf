@@ -11,23 +11,14 @@ resource "aws_eks_fargate_profile" "main" {
   ]
 
   # dynamic "selector" block
-
   dynamic "selector" {
-    iterator = ns
-    for_each = var.selector_namespaces
+    iterator = it
+    for_each = var.selectors
     content {
-      namespace = ns.value
+      namespace = it.value["namespace"]
+      labels    = lookup(it.value, "labels", {})
     }
   }
-
-  # selector {
-  #   namespace = "default"
-  # }
-
-  # selector {
-  #   namespace = "kube-system"
-  # }
-
 }
 
 resource "aws_iam_role" "fargate_pod_execution_role" {
