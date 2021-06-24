@@ -71,58 +71,77 @@ module "default_fargate_profile" {
   profile_name = "fp-default"
   cluster_name = aws_eks_cluster.main.name
   subnet_ids   = var.private_subnet_ids
-  selectors    = [{ namespace = "default", labels = {} }, { namespace = "kube-system", labels = { k8s-app = "kube-dns" } }, { namespace = "production", labels = {} }]
+  selectors    = [{ namespace = "default", labels = {} }, { namespace = "production", labels = {} }]
 }
 
-# codeDNS patch
-# https://docs.aws.amazon.com/eks/latest/userguide/fargate-getting-started.html#fargate-gs-coredns
-
-data "aws_eks_cluster_auth" "main" {
-  name = aws_eks_cluster.main.name
+module "coredns_fargate_profile" {
+  source       = "./fargate"
+  profile_name = "fp-coredns"
+  cluster_name = aws_eks_cluster.main.name
+  subnet_ids   = var.private_subnet_ids
+  # selectors    = [{ namespace = "kube-system", labels = { k8s-app = "kube-dns" } }]
+  selectors = [{ namespace = "kube-system", labels = {} }]
 }
 
-data "template_file" "kubeconfig" {
-  template = <<EOF
-apiVersion: v1
-kind: Config
-current-context: terraform
-clusters:
-- name: main
-  cluster:
-    certificate-authority-data: ${aws_eks_cluster.main.certificate_authority.0.data}
-    server: ${aws_eks_cluster.main.endpoint}
-contexts:
-- name: terraform
-  context:
-    cluster: main
-    user: terraform
-users:
-- name: terraform
-  user:
-    token: ${data.aws_eks_cluster_auth.main.token}
-EOF
+# # codeDNS patch
+# # https://docs.aws.amazon.com/eks/latest/userguide/fargate-getting-started.html#fargate-gs-coredns
 
-  depends_on = [
-    data.aws_eks_cluster_auth.main
-  ]
-}
+# data "aws_eks_cluster_auth" "main" {
+#   name = aws_eks_cluster.main.name
+# }
 
-resource "null_resource" "coredns_patch" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command     = <<EOF
-kubectl --kubeconfig=<(echo '${data.template_file.kubeconfig.rendered}') \
-  patch deployment coredns \
-  --namespace kube-system \
-  --type=json \
-  -p='[{"op": "remove", "path": "/spec/template/metadata/annotations", "value": "eks.amazonaws.com/compute-type"}]'
-EOF
-  }
-  depends_on = [
-    aws_eks_cluster.main,
-    module.default_fargate_profile.id
-  ]
-}
+# data "template_file" "kubeconfig" {
+#   template = <<EOF
+# apiVersion: v1
+# kind: Config
+# current-context: terraform
+# clusters:
+# - name: main
+#   cluster:
+#     certificate-authority-data: ${aws_eks_cluster.main.certificate_authority.0.data}
+#     server: ${aws_eks_cluster.main.endpoint}
+# contexts:
+# - name: terraform
+#   context:
+#     cluster: main
+#     user: terraform
+# users:
+# - name: terraform
+#   user:
+#     token: ${data.aws_eks_cluster_auth.main.token}
+# EOF
+
+#   depends_on = [
+#     aws_eks_cluster.main,
+#     data.aws_eks_cluster_auth.main
+#   ]
+# }
+
+# resource "null_resource" "coredns_patch" {
+#   provisioner "local-exec" {
+#     interpreter = ["/bin/bash", "-c"]
+#     command     = <<EOF
+# kubectl --kubeconfig=<(echo '${data.template_file.kubeconfig.rendered}') \
+#   patch deployment coredns \
+#   -n kube-system \
+#   --type=json \
+#   -p='[{"op": "remove", "path": "/spec/template/metadata/annotations", "value": "eks.amazonaws.com/compute-type"}]'
+# EOF
+#   }
+#   #   provisioner "local-exec" {
+#   #     when    = destroy
+#   #     command = <<EOF
+#   # kubectl --kubeconfig=<(echo '${self.triggers.kubeconfig}') \
+#   #   annotate deployment.apps/coredns \
+#   #   -n kube-system \
+#   #   eks.amazonaws.com/compute-type="ec2" 
+#   # EOF
+#   #   }
+
+#   depends_on = [
+#     module.coredns_fargate_profile.id
+#   ]
+# }
 
 output "eks_cluster_id" {
   value = aws_eks_cluster.main.id
@@ -138,4 +157,12 @@ output "default_fargate_profile_id" {
 
 output "default_fargate_profile_status" {
   value = module.default_fargate_profile.status
+}
+
+output "coredns_fargate_profile_id" {
+  value = module.coredns_fargate_profile.id
+}
+
+output "coredns_fargate_profile_status" {
+  value = module.coredns_fargate_profile.status
 }

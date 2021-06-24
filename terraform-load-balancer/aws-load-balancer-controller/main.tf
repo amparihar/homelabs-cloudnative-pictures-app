@@ -9,7 +9,7 @@ resource "aws_iam_openid_connect_provider" "oidcProvider" {
 ## 1. Create k8s Service Account for load balancer controller
 
 resource "kubernetes_service_account" "load_balancer_controller" {
-  
+
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
@@ -96,7 +96,7 @@ resource "helm_release" "load_balancer_controller" {
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   namespace  = "kube-system"
-
+  
   set {
     name  = "clusterName"
     value = var.cluster_name

@@ -58,3 +58,11 @@ output "default_fargate_profile_id" {
 output "default_fargate_profile_status" {
   value = module.cluster.default_fargate_profile_status
 }
+
+output "coredns_fargate_profile_id" {
+  value = module.cluster.coredns_fargate_profile_id
+}
+
+output "coredns_fargate_profile_status" {
+  value = module.cluster.coredns_fargate_profile_status
+}
