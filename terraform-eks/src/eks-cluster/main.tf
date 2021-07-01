@@ -80,7 +80,7 @@ module "coredns_fargate_profile" {
   cluster_name = aws_eks_cluster.main.name
   subnet_ids   = var.private_subnet_ids
   # selectors    = [{ namespace = "kube-system", labels = { k8s-app = "kube-dns" } }]
-  selectors = [{ namespace = "kube-system", labels = {} }]
+  selectors = [{ namespace = "kube-system", labels = {} }, {namespace = "kubernetes-dashboard", labels = {}}]
 }
 
 # # codeDNS patch

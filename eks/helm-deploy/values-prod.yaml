@@ -1,0 +1,39 @@
+# Default values for pictures-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameSpace: production
+replicaCount: 3
+
+image:
+  repository: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/homelabs
+  tag: pictures-web
+  ports: 
+    - name: http
+      containerPort: 3000
+      protocol: tcp
+
+service:
+  type: NodePort
+  ports: 
+    - name: web-port
+      port: 80
+      targetPort: 3000
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 512Mi
+  requests:
+    cpu: 300m
+    memory: 512Mi
+
+ingress:
+  enabled: true
+  className: ""
+  annotations: 
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+  
+

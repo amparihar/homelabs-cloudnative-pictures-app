@@ -1,0 +1,35 @@
+# Default values for pictures-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameSpace: local
+replicaCount: 1
+
+image:
+  repository: aparihar/homelabs
+  tag: pictures-web
+  ports: 
+    - name: http
+      containerPort: 3000
+      protocol: tcp
+
+service:
+  type: NodePort
+  ports: 
+    - name: web-port
+      port: 80
+      targetPort: 3000
+      nodePort: 30010
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 300Mi
+  requests:
+    cpu: 100m
+    memory: 300Mi
+
+ingress:
+  enabled: false
+  
+
