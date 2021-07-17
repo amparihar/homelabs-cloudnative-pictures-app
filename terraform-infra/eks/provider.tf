@@ -18,14 +18,14 @@ module "vpc" {
 }
 
 module "cluster" {
-  source             = "./eks-cluster"
-  app_name           = var.app_name
-  stage_name         = var.stage_name
-  cluster_name       = var.cluster_name
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  private_subnet_ids = module.vpc.private_subnet_ids
+  source                    = "./eks-cluster"
+  app_name                  = var.app_name
+  stage_name                = var.stage_name
+  cluster_name              = var.cluster_name
+  public_subnet_ids         = module.vpc.public_subnet_ids
+  private_subnet_ids        = module.vpc.private_subnet_ids
   enabled_cluster_log_types = []
-  private_networking = var.private_networking
+  private_networking        = var.private_networking
 }
 
 output "vpcid" {
