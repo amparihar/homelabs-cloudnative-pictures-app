@@ -69,7 +69,7 @@ module "default_fargate_profile" {
   cluster_name           = aws_eks_cluster.main.name
   subnet_ids             = var.private_subnet_ids
   pod_execution_role_arn = aws_iam_role.fargate_pod_execution_role.arn
-  selectors              = [{ namespace = "default" }]
+  selectors              = [{ namespace = "default" }, { namespace = "production" }]
 }
 
 module "core_fargate_profile" {

@@ -1,7 +1,7 @@
 variable "app_name" {
   type = string
 }
-variable "app_stage" {
+variable "stage_name" {
   type = string
 }
 variable "irsa_name" {

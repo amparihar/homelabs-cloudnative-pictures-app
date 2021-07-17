@@ -5,7 +5,7 @@ resources:
 bases:
   - ../../app
 patchesStrategicMerge:
-  - set_elb.yaml
+  - set_alb.yaml
   - set_pod_resources.yaml
 images:
   - name: aparihar/homelabs:pictures-web

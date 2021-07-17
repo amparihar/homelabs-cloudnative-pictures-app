@@ -2,6 +2,9 @@ data "aws_iam_role" "irsa" {
   name = var.irsa_name
 }
 
+# IAM Policy for load balancer controller service account that allows it to make aws api calls
+# IAM Policy reference : https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+# main branch is referred to get the latest policy
 resource "aws_iam_policy" "load_balancer_controller_sa_iam_policy" {
   path   = "/" # Path in which to create the policy
   policy = data.aws_iam_policy_document.load_balancer_controller_sa_iam_policy.json
@@ -12,8 +15,8 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller_sa_iam_polic
   policy_arn = aws_iam_policy.load_balancer_controller_sa_iam_policy.arn
 }
 
-## 1. Create k8s Service Account for load balancer controller
-
+# Create k8s Service Account for load balancer controller
+# Associate IAM Role with the service account, by annotating it
 resource "kubernetes_service_account" "load_balancer_controller" {
 
   metadata {
@@ -29,8 +32,7 @@ resource "kubernetes_service_account" "load_balancer_controller" {
   }
 }
 
-## 2. Create Cluster Role for Service Account
-
+# Create Cluster Role for Service Account
 resource "kubernetes_cluster_role" "load_balancer_controller" {
   metadata {
     name = "aws-load-balancer-controller-cluster-role"
@@ -50,7 +52,7 @@ resource "kubernetes_cluster_role" "load_balancer_controller" {
   }
 }
 
-## 3. Create Cluster role binding
+# Create Cluster role binding
 resource "kubernetes_cluster_role_binding" "load_balancer_controller" {
   metadata {
     name = "aws-load-balancer-controller-cluster-rolebinding"
@@ -71,31 +73,7 @@ resource "kubernetes_cluster_role_binding" "load_balancer_controller" {
   }
 }
 
-## 4. Create IAM Policy for load balancer controller Service Account that allows it to make aws api calls
-
-# IAM Policy reference : https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
-# main branch is referred to get the latest policy
-
-# resource "aws_iam_policy" "load_balancer_controller_sa_iam_policy" {
-#   path   = "/" # Path in which to create the policy
-#   policy = data.aws_iam_policy_document.load_balancer_controller_sa_iam_policy.json
-# }
-
-## 5. Create IAM assume role, attach IAM Policy and associate it with the service account, by annotating it with the k8s service account
-
-# resource "aws_iam_role" "load_balancer_controller_service_account_role" {
-#   #name               = "load_balancer_controller_service_account_role"
-#   path               = "/"
-#   assume_role_policy = data.aws_iam_policy_document.load_balancer_controller_service_account_assume_role_policy.json
-# }
-
-# resource "aws_iam_role_policy_attachment" "load_balancer_controller_sa_iam_policy" {
-#   role       = aws_iam_role.irsa.name
-#   policy_arn = aws_iam_policy.load_balancer_controller_sa_iam_policy.arn
-# }
-
-## 6. Install aws load balancer controller
-
+# Install aws load balancer controller
 resource "helm_release" "load_balancer_controller" {
   name             = "aws-load-balancer-controller"
   repository       = "https://aws.github.io/eks-charts"

@@ -36,7 +36,7 @@ output "kubernetes_sa_iam_role_name" {
 module "aws_load_balancer_controller" {
   source       = "./modules/aws-load-balancer-controller"
   app_name     = var.app_name
-  app_stage    = var.stage_name
+  stage_name   = var.stage_name
   cluster_name = var.cluster_name
   vpc_id       = var.vpc_id
   region_id    = var.aws_regions[var.aws_region]

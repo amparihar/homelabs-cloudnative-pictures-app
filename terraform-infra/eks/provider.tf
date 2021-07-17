@@ -24,6 +24,7 @@ module "cluster" {
   cluster_name       = var.cluster_name
   public_subnet_ids  = module.vpc.public_subnet_ids
   private_subnet_ids = module.vpc.private_subnet_ids
+  enabled_cluster_log_types = []
   private_networking = var.private_networking
 }
 
