@@ -1,0 +1,7 @@
+resources:
+  - namespace.yaml
+
+patchesStrategicMerge:
+  - set_nlb.yaml
+  
+namespace: development

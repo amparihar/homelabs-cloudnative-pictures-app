@@ -39,9 +39,10 @@ resource "aws_subnet" "private" {
   cidr_block        = element(var.private_subnets, count.index)
 
   tags = {
-    Name                              = "private-subnet-${var.app_name}-${var.stage_name}-${local.azs[count.index]}-${count.index + 1}"
-    "kubernetes.io/role/internal-elb" = "1"
-    Tier                              = "Private"
+    Name                                        = "private-subnet-${var.app_name}-${var.stage_name}-${local.azs[count.index]}-${count.index + 1}"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"           = "1"
+    Tier                                        = "Private"
   }
 }
 
