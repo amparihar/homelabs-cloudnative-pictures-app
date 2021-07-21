@@ -1,3 +1,7 @@
+data "aws_iam_role" "irsa" {
+  name = var.irsa_name
+}
+
 # IAM Policy for load balancer controller service account that allows it to make aws api calls
 # IAM Policy reference : https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
 # main branch is referred to get the latest policy
@@ -105,7 +109,7 @@ resource "helm_release" "load_balancer_controller" {
 
   set {
     name  = "image.repository"
-    value = "602401143452.dkr.ecr.ap-south-1.amazonaws.com/amazon/aws-load-balancer-controller"
+    value = "602401143452.dkr.ecr.${var.region_id}.amazonaws.com/amazon/aws-load-balancer-controller"
   }
 
   depends_on = [

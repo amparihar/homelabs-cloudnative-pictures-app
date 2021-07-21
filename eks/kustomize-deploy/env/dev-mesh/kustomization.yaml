@@ -1,7 +1,5 @@
 resources:
   - namespace.yaml
-
-patchesStrategicMerge:
-  - set_nlb.yaml
+  - meshed_simple_calculator.yaml
   
 namespace: development

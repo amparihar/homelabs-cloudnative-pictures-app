@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-calculator-deployment
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: simple-calculator
+  template:
+    spec:
+      containers:
+        - name: simple-calculator-service
+          image: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/todos:simple-calculator-microsvc
+          ports:
+            - containerPort: 9001
+    metadata:
+      labels:
+        app: simple-calculator
+        
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  
+  name: simple-calculator-service
+spec:
+  ports:
+    - name: simple-calculator-service-port
+      port: 80
+      targetPort: 9001
+  selector:
+    app: simple-calculator
+    
+---
+
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualNode
+metadata:
+  name: simple-calculator-vn
+  
+spec:
+  podSelector:
+    matchLabels:
+      app: simple-calculator
+  listeners:
+    - portMapping:
+        port: 9001
+        protocol: http
+      healthCheck:
+        protocol: http
+        path: '/api/calculator/ping'
+        healthyThreshold: 2
+        unhealthyThreshold: 2
+        timeoutMillis: 2000
+        intervalMillis: 5000
+  serviceDiscovery:
+    dns:
+      hostname: simple-calculator-service.development.svc.cluster.local
+      
+---
+
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualService
+metadata:
+  name: simple-calculator-vs
+  
+spec:
+  awsName: simple-calculator-service.development.svc.cluster.local
+  provider:
+    virtualNode:
+      virtualNodeRef:
+        name: simple-calculator-vn
+        
+---
+
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualGateway
+metadata:
+  name: ingress-vgw
+  
+spec:
+  namespaceSelector:
+    matchLabels:
+      gateway: ingress-gw
+  podSelector:
+    matchLabels:
+      app: ingress-envoy
+  listeners:
+    - portMapping:
+        port: 8088
+        protocol: http
+  
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-svc
+  
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb-ip
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "120"
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8088
+  selector:
+    app: ingress-envoy
+    
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: envoy-deployment
+  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingress-envoy
+  template:
+    metadata:
+      labels:
+        app: ingress-envoy
+    spec:
+      containers:
+        - name: envoy
+          image: 840364872350.dkr.ecr.ap-south-1.amazonaws.com/aws-appmesh-envoy:v1.18.3.0-prod
+          ports:
+            - containerPort: 8088
+            
+---
+
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: GatewayRoute
+metadata:
+  name: ingress-gateway-route
+  
+spec:
+  httpRoute:
+    match:
+      prefix: "/api/calculator/*"
+    action:
+      target:
+        virtualService:
+          virtualServiceRef:
+            name: simple-calculator-vs

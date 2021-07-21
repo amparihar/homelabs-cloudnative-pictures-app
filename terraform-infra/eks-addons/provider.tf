@@ -53,3 +53,11 @@ module "fargate_logging" {
   eks_fargate_pod_execution_role_name = var.eks_fargate_pod_execution_role_name
   region_id                           = var.aws_regions[var.aws_region]
 }
+
+module "app-mesh-controller" {
+  source     = "./modules/app-mesh-controller"
+  app_name   = var.app_name
+  stage_name = var.stage_name
+  region_id  = var.aws_regions[var.aws_region]
+  irsa_name  = module.irsa.kubernetes_sa_iam_role_name
+}
