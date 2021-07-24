@@ -28,7 +28,7 @@ module "aws_load_balancer_controller" {
   source       = "./modules/aws-load-balancer-controller"
   app_name     = var.app_name
   stage_name   = var.stage_name
-  cluster_name = var.cluster_name
+  cluster_name = data.aws_eks_cluster.main.name
   vpc_id       = var.vpc_id
   region_id    = var.aws_regions[var.aws_region]
   irsa_name    = var.irsa_name
@@ -40,15 +40,19 @@ module "kubernetes_dashboard" {
 
 module "fargate_logging" {
   source       = "./modules/logging"
-  cluster_name = var.cluster_name
-  irsa_name    = var.irsa_name
+  cluster_name = data.aws_eks_cluster.main.name
   region_id    = var.aws_regions[var.aws_region]
 }
 
-module "app-mesh-controller" {
-  source     = "./modules/app-mesh-controller"
-  app_name   = var.app_name
-  stage_name = var.stage_name
-  region_id  = var.aws_regions[var.aws_region]
-  irsa_name  = var.irsa_name
+module "app_mesh_controller" {
+  source         = "./modules/app-mesh-controller"
+  app_name       = var.app_name
+  stage_name     = var.stage_name
+  region_id      = var.aws_regions[var.aws_region]
+  irsa_name      = var.irsa_name
+  app_namespaces = var.app_namespaces
+}
+
+output "appmesh_controller_sa_arn" {
+  value = module.app_mesh_controller.appmesh_controller_sa_arn
 }

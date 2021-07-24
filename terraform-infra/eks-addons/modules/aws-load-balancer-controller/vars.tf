@@ -10,10 +10,10 @@ variable "irsa_name" {
 variable "cluster_name" {
   type = string
 }
-variable "vpc_id"{
+variable "vpc_id" {
   type = string
 }
-variable "region_id"{
+variable "region_id" {
   type = string
 }
 variable "load_balancer_cluster_role_rules" {

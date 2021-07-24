@@ -1,27 +1,28 @@
-
+resource "aws_iam_role" "aws_load_balancer_controller_sa" {
+  assume_role_policy = data.aws_iam_role.irsa.assume_role_policy
+}
 
 # IAM Policy for load balancer controller service account that allows it to make aws api calls
 # IAM Policy reference : https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
 # main branch is referred to get the latest policy
-resource "aws_iam_policy" "load_balancer_controller_sa_iam_policy" {
+resource "aws_iam_policy" "aws_load_balancer_controller_sa" {
   path   = "/" # Path in which to create the policy
-  policy = data.aws_iam_policy_document.load_balancer_controller_sa_iam_policy.json
+  policy = data.aws_iam_policy_document.aws_load_balancer_controller_sa_iam_policy.json
 }
 
-resource "aws_iam_role_policy_attachment" "load_balancer_controller_sa_iam_policy" {
-  role       = data.aws_iam_role.irsa.name
-  policy_arn = aws_iam_policy.load_balancer_controller_sa_iam_policy.arn
+resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_sa" {
+  role       = aws_iam_role.aws_load_balancer_controller_sa.name
+  policy_arn = aws_iam_policy.aws_load_balancer_controller_sa.arn
 }
 
 # Create k8s Service Account for load balancer controller
 # Associate IAM Role with the service account, by annotating it
 resource "kubernetes_service_account" "load_balancer_controller" {
-
   metadata {
     name      = "aws-load-balancer-controller"
     namespace = "kube-system"
     annotations = {
-      "eks.amazonaws.com/role-arn" = data.aws_iam_role.irsa.arn
+      "eks.amazonaws.com/role-arn" = aws_iam_role.aws_load_balancer_controller_sa.arn
     }
     labels = {
       "app.kubernetes.io/component" = "controller"
@@ -117,3 +118,7 @@ resource "helm_release" "load_balancer_controller" {
 
 ## 7. Create Ingress Manifest(routing rules)
 ## This will be part of the app resources
+
+
+
+

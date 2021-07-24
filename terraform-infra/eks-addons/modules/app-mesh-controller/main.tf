@@ -1,49 +1,53 @@
 resource "kubernetes_namespace" "appmesh_controller" {
   metadata {
     annotations = {
-      name = "appmesh-system"
+      name = var.appmesh_controller_namespace
     }
-    name = "appmesh-system"
+    name = var.appmesh_controller_namespace
   }
 }
 
-# add AWS managed IAM policies
+resource "aws_iam_role" "appmesh_controller_sa" {
+  assume_role_policy = data.aws_iam_role.irsa.assume_role_policy
+}
+
+# add AWS managed IAM policies to appmesh controller sa
 resource "aws_iam_role_policy_attachment" "AWSAppMeshFullAccess" {
-  role       = data.aws_iam_role.eks_fargate_pod_execution_iam_role.name
+  role       = aws_iam_role.appmesh_controller_sa.name
   policy_arn = "arn:aws:iam::aws:policy/AWSAppMeshFullAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "AWSCloudMapFullAccess" {
-  role       = data.aws_iam_role.eks_fargate_pod_execution_iam_role.name
+  role       = aws_iam_role.appmesh_controller_sa.name
   policy_arn = "arn:aws:iam::aws:policy/AWSCloudMapFullAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "AWSCloudMapDiscoverInstanceAccess" {
-  role       = data.aws_iam_role.eks_fargate_pod_execution_iam_role.name
+  role       = aws_iam_role.appmesh_controller_sa.name
   policy_arn = "arn:aws:iam::aws:policy/AWSCloudMapDiscoverInstanceAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "AWSAppMeshEnvoyAccess" {
-  role       = data.aws_iam_role.eks_fargate_pod_execution_iam_role.name
+  role       = aws_iam_role.appmesh_controller_sa.name
   policy_arn = "arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "AWSXRayDaemonWriteAccess" {
-  role       = data.aws_iam_role.eks_fargate_pod_execution_iam_role.name
+  role       = aws_iam_role.appmesh_controller_sa.name
   policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "CloudWatchLogsFullAccess" {
-  role       = data.aws_iam_role.eks_fargate_pod_execution_iam_role.name
+  role       = aws_iam_role.appmesh_controller_sa.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
 }
 
 resource "kubernetes_service_account" "appmesh_controller" {
   metadata {
     name      = "appmesh-controller"
-    namespace = "appmesh-system"
+    namespace = var.appmesh_controller_namespace
     annotations = {
-      "eks.amazonaws.com/role-arn" = data.aws_iam_role.eks_fargate_pod_execution_iam_role.arn
+      "eks.amazonaws.com/role-arn" = aws_iam_role.appmesh_controller_sa.arn
     }
     labels = {
       "app.kubernetes.io/component" = "controller"
@@ -88,4 +92,27 @@ resource "helm_release" "app-mesh-controller" {
   #   name  = "init.image"
   #   value = "840364872350.dkr.ecr.${var.region_id}.amazonaws.com/aws-appmesh-proxy-route-manager"
   # }
+
+  depends_on = [
+    kubernetes_service_account.appmesh_controller
+  ]
+}
+
+
+# resource "kubernetes_service_account" "envoy_proxy" {
+#   count = length(var.app_namespaces)
+#   metadata {
+#     name      = "envoy-proxy-pod"
+#     namespace = var.app_namespaces[count.index]
+#     annotations = {
+#       "eks.amazonaws.com/role-arn" = aws_iam_role.appmesh_controller_sa.arn
+#     }
+#   }
+#   depends_on = [
+#     aws_iam_role.appmesh_controller_sa
+#   ]
+# }
+
+output "appmesh_controller_sa_arn" {
+  value = aws_iam_role.appmesh_controller_sa.arn
 }

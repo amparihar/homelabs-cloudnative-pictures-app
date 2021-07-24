@@ -62,16 +62,16 @@ module "irsa" {
   oidc_url = module.cluster.eks_cluster_oidc_url
 }
 
-# role name used for attaching iam policy to allow 
-# 1. fargate profiles to write logs to CW using fluentbit log router
-# 2. aws-load-balancer-controller
-# 3. appmesh-controller
-output "eks_fargate_pod_execution_iam_role_name" {
-  value = module.irsa.eks_fargate_pod_execution_iam_role_name
+output "k8s_sa_iam_role_name" {
+  value = module.irsa.k8s_sa_iam_role_name
 }
 
-output "eks_fargate_pod_execution_iam_role_arn" {
-  value = module.irsa.eks_fargate_pod_execution_iam_role_arn
+output "k8s_sa_iam_role_arn" {
+  value = module.irsa.k8s_sa_iam_role_arn
+}
+
+output "eks_fargate_pod_execution_iam_role_name" {
+  value = module.irsa.eks_fargate_pod_execution_iam_role_name
 }
 
 module "default_fargate_profile" {

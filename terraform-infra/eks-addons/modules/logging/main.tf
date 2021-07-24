@@ -1,12 +1,3 @@
-resource "aws_iam_policy" "eks_fargate_pod_execution_iam_role_logging_policy" {
-  description = "Allow fargate profiles to write cloud watch logs"
-  policy      = data.aws_iam_policy_document.eks_fargate_logging_iam_policy.json
-}
-
-resource "aws_iam_role_policy_attachment" "eks_fargate_pod_execution_iam_role_logging_policy" {
-  policy_arn = aws_iam_policy.eks_fargate_pod_execution_iam_role_logging_policy.arn
-  role       = data.aws_iam_role.eks_fargate_pod_execution_iam_role.name
-}
 
 resource "kubernetes_namespace" "aws_observability" {
   metadata {

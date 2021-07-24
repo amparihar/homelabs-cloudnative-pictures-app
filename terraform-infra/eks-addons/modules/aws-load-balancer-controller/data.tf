@@ -2,7 +2,7 @@ data "aws_iam_role" "irsa" {
   name = var.irsa_name
 }
 
-data "aws_iam_policy_document" "load_balancer_controller_sa_iam_policy" {
+data "aws_iam_policy_document" "aws_load_balancer_controller_sa_iam_policy" {
   statement {
     actions = [
       "iam:CreateServiceLinkedRole",
@@ -217,3 +217,5 @@ data "aws_iam_policy_document" "load_balancer_controller_sa_iam_policy" {
     resources = ["*"]
   }
 }
+
+

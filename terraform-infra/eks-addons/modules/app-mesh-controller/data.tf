@@ -1,3 +1,3 @@
-data "aws_iam_role" "eks_fargate_pod_execution_iam_role" {
+data "aws_iam_role" "irsa" {
   name = var.irsa_name
 }

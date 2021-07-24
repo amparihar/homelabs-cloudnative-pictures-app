@@ -35,9 +35,13 @@ variable "vpc_id" {
 }
 variable "irsa_name" {
   type        = string
-  description = "The fargate pod execution iam role name."
+  description = "The name of the iam role for k8s sa."
   validation {
     condition     = length(var.irsa_name) > 0
-    error_message = "Fargate pod execution iam role name is required."
+    error_message = "IRSA Name is required."
   }
+}
+variable "app_namespaces" {
+  type    = list(string)
+  default = []
 }

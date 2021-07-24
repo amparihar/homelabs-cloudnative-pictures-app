@@ -7,9 +7,11 @@ variable "stage_name" {
 variable "irsa_name" {
   type = string
 }
-
 variable "region_id" {
   type = string
+}
+variable "app_namespaces" {
+  type = list(string)
 }
 
 variable "appmesh_controller_enabled" {
