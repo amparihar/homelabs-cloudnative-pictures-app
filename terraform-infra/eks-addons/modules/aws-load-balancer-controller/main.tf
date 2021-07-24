@@ -1,6 +1,4 @@
-data "aws_iam_role" "irsa" {
-  name = var.irsa_name
-}
+
 
 # IAM Policy for load balancer controller service account that allows it to make aws api calls
 # IAM Policy reference : https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json

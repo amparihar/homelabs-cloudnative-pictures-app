@@ -17,6 +17,7 @@ resource "aws_eks_cluster" "main" {
   ]
 
   role_arn = aws_iam_role.eks_cluster_role.arn
+  version  = var.cluster_version
 
   tags = {
     Name = "eks-cluster-${local.name_suffix}"
@@ -47,47 +48,7 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSClusterCloudWatchPolicy" {
   role       = aws_iam_role.eks_cluster_role.name
 }
 
-# fargate pod execution role
-resource "aws_iam_role" "fargate_pod_execution_role" {
-  assume_role_policy = data.aws_iam_policy_document.fargate_pod_execution_role_assume_role_policy.json
-}
 
-resource "aws_iam_policy" "fargate_pod_execution_policy" {
-  policy = data.aws_iam_policy_document.fargate_pod_execution_policy.json
-}
-
-resource "aws_iam_role_policy_attachment" "fargate_pod_execution_policy" {
-  policy_arn = aws_iam_policy.fargate_pod_execution_policy.arn
-  role       = aws_iam_role.fargate_pod_execution_role.name
-}
-
-module "default_fargate_profile" {
-  source                 = "./fargate"
-  app_name               = var.app_name
-  stage_name             = var.stage_name
-  profile_name           = "fp-default"
-  cluster_name           = aws_eks_cluster.main.name
-  subnet_ids             = var.private_subnet_ids
-  pod_execution_role_arn = aws_iam_role.fargate_pod_execution_role.arn
-  selectors              = [{ namespace = "default" }, { namespace = "development" }]
-}
-
-module "core_fargate_profile" {
-  source                 = "./fargate"
-  app_name               = var.app_name
-  stage_name             = var.stage_name
-  profile_name           = "fp-core"
-  cluster_name           = aws_eks_cluster.main.name
-  subnet_ids             = var.private_subnet_ids
-  pod_execution_role_arn = aws_iam_role.fargate_pod_execution_role.arn
-  selectors = [
-    { namespace = "kube-system" },
-    { namespace = "kubernetes-dashboard" },
-    { namespace = "appmesh-system" },
-    { namespace = "aws-observability" }
-  ]
-  # selectors            = [{ namespace = "kube-system", labels = { k8s-app = "kube-dns" } }]
-}
 
 # # codeDNS patch
 # # https://docs.aws.amazon.com/eks/latest/userguide/fargate-getting-started.html#fargate-gs-coredns
@@ -153,26 +114,14 @@ output "eks_cluster_id" {
   value = aws_eks_cluster.main.id
 }
 
+output "eks_cluster_name" {
+  value = aws_eks_cluster.main.name
+}
+
 output "eks_cluster_status" {
   value = aws_eks_cluster.main.status
 }
 
-output "eks_fargate_pod_execution_role_name" {
-  value = aws_iam_role.fargate_pod_execution_role.name
-}
-
-output "default_fargate_profile_id" {
-  value = module.default_fargate_profile.id
-}
-
-output "default_fargate_profile_status" {
-  value = module.default_fargate_profile.status
-}
-
-output "core_fargate_profile_id" {
-  value = module.core_fargate_profile.id
-}
-
-output "core_fargate_profile_status" {
-  value = module.core_fargate_profile.status
+output "eks_cluster_oidc_url" {
+  value = aws_eks_cluster.main.identity[0].oidc[0].issuer
 }

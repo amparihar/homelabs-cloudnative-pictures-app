@@ -1,10 +1,17 @@
 variable "app_name" {
+  type    = string
   default = ""
 }
 variable "stage_name" {
+  type    = string
   default = ""
 }
-variable "cluster_name" {}
+variable "cluster_name" {
+  type = string
+}
+variable "cluster_version" {
+  type = string
+}
 variable "public_subnet_ids" {
   type    = list(string)
   default = []

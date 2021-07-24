@@ -33,6 +33,11 @@ variable "cluster_name" {
     error_message = "Cluster Name is required."
   }
 }
+variable "k8s_version" {
+  description = "k8s cluster version"
+  default     = "1.19"
+  type        = string
+}
 variable "private_networking" {
   type    = bool
 }

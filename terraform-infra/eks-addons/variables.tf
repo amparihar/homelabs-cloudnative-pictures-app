@@ -13,7 +13,8 @@ variable "aws_region" {
 variable "aws_regions" {
   type = map(string)
   default = {
-    mumbai = "ap-south-1"
+    north-virginia = "us-east-1"
+    mumbai         = "ap-south-1"
   }
 }
 variable "cluster_name" {
@@ -32,11 +33,11 @@ variable "vpc_id" {
     error_message = "VPC Id is required."
   }
 }
-variable "eks_fargate_pod_execution_role_name" {
+variable "irsa_name" {
   type        = string
-  description = "The fargate pod execution role name."
+  description = "The fargate pod execution iam role name."
   validation {
-    condition     = length(var.eks_fargate_pod_execution_role_name) > 0
-    error_message = "Fargate pod execution role name is required."
+    condition     = length(var.irsa_name) > 0
+    error_message = "Fargate pod execution iam role name is required."
   }
 }

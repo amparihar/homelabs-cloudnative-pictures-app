@@ -34,11 +34,16 @@ variable "appmesh_controller_helm_repo_url" {
   default     = "https://aws.github.io/eks-charts"
   description = "Helm repository"
 }
+variable "appmesh_controller_helm_version" {
+  type        = string
+  default     = "1.3.0"
+  description = "Heml version"
+}
 
 # K8S
 variable "appmesh_controller_create_namespace" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether to create appmesh-system namespace"
 }
 variable "appmesh_controller_namespace" {

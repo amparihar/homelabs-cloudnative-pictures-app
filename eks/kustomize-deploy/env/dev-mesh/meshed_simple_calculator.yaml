@@ -88,9 +88,12 @@ spec:
   podSelector:
     matchLabels:
       app: ingress-envoy
+  gatewayRouteSelector:
+    matchLabels:
+      gateway: ingress-gw
   listeners:
     - portMapping:
-        port: 8088
+        port: 8080
         protocol: http
   
 ---
@@ -109,7 +112,7 @@ spec:
   type: LoadBalancer
   ports:
     - port: 80
-      targetPort: 8088
+      targetPort: 8080
   selector:
     app: ingress-envoy
     
@@ -130,11 +133,12 @@ spec:
       labels:
         app: ingress-envoy
     spec:
+      
       containers:
         - name: envoy
           image: 840364872350.dkr.ecr.ap-south-1.amazonaws.com/aws-appmesh-envoy:v1.18.3.0-prod
           ports:
-            - containerPort: 8088
+            - containerPort: 8080
             
 ---
 
@@ -142,7 +146,8 @@ apiVersion: appmesh.k8s.aws/v1beta2
 kind: GatewayRoute
 metadata:
   name: ingress-gateway-route
-  
+  labels:
+    gateway: ingress-gw
 spec:
   httpRoute:
     match:
@@ -152,3 +157,5 @@ spec:
         virtualService:
           virtualServiceRef:
             name: simple-calculator-vs
+            
+---
