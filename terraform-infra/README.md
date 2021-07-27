@@ -21,14 +21,16 @@ Change into the eks-addons directory and create the resources after EKS Cluster 
 cd eks-addons
 terraform init
 terraform validate
-terraform plan -out <FILENAME2> -var=cluster_name=<CLUSTERNAME> -var=vpc_id=<VPCID> --var=irsa_name=<FARGATE_POD_EXECUTION_ROLE_NAME>
+terraform plan -out <FILENAME2> -var=cluster_name=<CLUSTERNAME> -var=vpc_id=<VPCID> 
 terraform apply <FILENAME2>
+
+update "service_account.yaml" with the value of the output variable named "appmesh_controller_sa_arn"
 
 3. Deleting the Cluster
 First, delete the K8s resources followed by the EKS Cluster
 
 cd eks-addons
-terraform destroy -var=cluster_name=<CLUSTERNAME> -var=vpc_id=<VPCID> --var=irsa_name=<FARGATE_POD_EXECUTION_ROLE_NAME>
+terraform destroy -var=cluster_name=<CLUSTERNAME> -var=vpc_id=<VPCID> 
 
 cd eks
 terraform destroy -var=cluster_name=<CLUSTERNAME>
