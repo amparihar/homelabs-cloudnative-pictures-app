@@ -29,11 +29,35 @@ output "private_subnet_ids" {
   value = module.vpc.private_subnet_ids
 }
 
+module "security-groups" {
+  source                     = "./security-groups"
+  app_name                   = var.app_name
+  stage_name                 = var.stage_name
+  create_vpc                 = module.vpc.create_vpc
+  vpcid                      = module.vpc.vpcid[0]
+  private_subnets            = var.private_subnets
+  private_networking         = var.private_networking
+  envoy_proxy_container_port = 8080
+}
+
+module "iam" {
+  source = "./iam"
+}
+
+output "eks_cluster_iam_role_name" {
+  value = module.iam.eks_cluster_iam_role_name
+}
+
+output "eks_fargate_pod_execution_iam_role_name" {
+  value = module.iam.eks_fargate_pod_execution_iam_role_name
+}
+
 module "cluster" {
   source                    = "./cluster"
   app_name                  = var.app_name
   stage_name                = var.stage_name
   cluster_name              = var.cluster_name
+  role_arn                  = module.iam.eks_cluster_iam_role_arn
   cluster_version           = var.k8s_version
   public_subnet_ids         = module.vpc.public_subnet_ids
   private_subnet_ids        = module.vpc.private_subnet_ids
@@ -53,27 +77,6 @@ output "eks_cluster_status" {
   value = module.cluster.eks_cluster_status
 }
 
-output "eks_cluster_oidc_url" {
-  value = module.cluster.eks_cluster_oidc_url
-}
-
-module "irsa" {
-  source   = "./irsa"
-  oidc_url = module.cluster.eks_cluster_oidc_url
-}
-
-output "k8s_sa_iam_role_name" {
-  value = module.irsa.k8s_sa_iam_role_name
-}
-
-output "k8s_sa_iam_role_arn" {
-  value = module.irsa.k8s_sa_iam_role_arn
-}
-
-output "eks_fargate_pod_execution_iam_role_name" {
-  value = module.irsa.eks_fargate_pod_execution_iam_role_name
-}
-
 module "default_fargate_profile" {
   source                 = "./fargate"
   app_name               = var.app_name
@@ -81,7 +84,7 @@ module "default_fargate_profile" {
   profile_name           = "fp-default"
   cluster_name           = module.cluster.eks_cluster_name
   subnet_ids             = module.vpc.private_subnet_ids
-  pod_execution_role_arn = module.irsa.eks_fargate_pod_execution_iam_role_arn
+  pod_execution_role_arn = module.iam.eks_fargate_pod_execution_iam_role_arn
   selectors              = [{ namespace = "default" }, { namespace = "development" }]
 }
 
@@ -100,7 +103,7 @@ module "core_fargate_profile" {
   profile_name           = "fp-core"
   cluster_name           = module.cluster.eks_cluster_name
   subnet_ids             = module.vpc.private_subnet_ids
-  pod_execution_role_arn = module.irsa.eks_fargate_pod_execution_iam_role_arn
+  pod_execution_role_arn = module.iam.eks_fargate_pod_execution_iam_role_arn
   selectors = [
     { namespace = "kube-system" },
     { namespace = "kubernetes-dashboard" },

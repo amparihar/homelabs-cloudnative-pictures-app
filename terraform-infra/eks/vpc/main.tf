@@ -130,6 +130,10 @@ output "vpcid" {
   value = aws_vpc.main.*.id
 }
 
+output "create_vpc" {
+  value = local.create_vpc
+}
+
 output "public_subnet_ids" {
   value = aws_subnet.public.*.id
 }

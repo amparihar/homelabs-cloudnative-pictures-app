@@ -1,5 +1,5 @@
 resource "aws_iam_role" "aws_load_balancer_controller_sa" {
-  assume_role_policy = data.aws_iam_role.irsa.assume_role_policy
+  assume_role_policy = var.irsa_assume_role_policy
 }
 
 # IAM Policy for load balancer controller service account that allows it to make aws api calls
@@ -118,7 +118,3 @@ resource "helm_release" "load_balancer_controller" {
 
 ## 7. Create Ingress Manifest(routing rules)
 ## This will be part of the app resources
-
-
-
-

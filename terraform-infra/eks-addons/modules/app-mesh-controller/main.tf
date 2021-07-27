@@ -8,7 +8,7 @@ resource "kubernetes_namespace" "appmesh_controller" {
 }
 
 resource "aws_iam_role" "appmesh_controller_sa" {
-  assume_role_policy = data.aws_iam_role.irsa.assume_role_policy
+  assume_role_policy = var.irsa_assume_role_policy
 }
 
 # add AWS managed IAM policies to appmesh controller sa
@@ -116,3 +116,4 @@ resource "helm_release" "app-mesh-controller" {
 output "appmesh_controller_sa_arn" {
   value = aws_iam_role.appmesh_controller_sa.arn
 }
+

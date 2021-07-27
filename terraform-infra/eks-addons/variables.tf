@@ -1,6 +1,6 @@
 variable "app_name" {
   type    = string
-  default = "homelabs"
+  default = "EOMFTrading"
 }
 variable "stage_name" {
   type    = string
@@ -31,14 +31,6 @@ variable "vpc_id" {
   validation {
     condition     = length(var.vpc_id) > 0
     error_message = "VPC Id is required."
-  }
-}
-variable "irsa_name" {
-  type        = string
-  description = "The name of the iam role for k8s sa."
-  validation {
-    condition     = length(var.irsa_name) > 0
-    error_message = "IRSA Name is required."
   }
 }
 variable "app_namespaces" {

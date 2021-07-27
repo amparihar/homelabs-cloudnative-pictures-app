@@ -4,7 +4,7 @@ variable "app_name" {
 variable "stage_name" {
   type = string
 }
-variable "irsa_name" {
+variable "irsa_assume_role_policy" {
   type = string
 }
 variable "region_id" {

@@ -10,13 +10,8 @@ resource "aws_eks_cluster" "main" {
   vpc_config {
     subnet_ids = local.subnet_ids
   }
-  depends_on = [
-    aws_iam_role_policy_attachment.AmazonEKSClusterPolicy,
-    aws_iam_role_policy_attachment.AmazonEKSServicePolicy,
-    aws_iam_role_policy_attachment.AmazonEKSClusterCloudWatchPolicy
-  ]
 
-  role_arn = aws_iam_role.eks_cluster_role.arn
+  role_arn = var.role_arn
   version  = var.cluster_version
 
   tags = {
@@ -24,31 +19,23 @@ resource "aws_eks_cluster" "main" {
   }
 }
 
-# eks cluster role
-resource "aws_iam_role" "eks_cluster_role" {
-  assume_role_policy = data.aws_iam_policy_document.eks_cluster_role_assume_role_policy.json
+data "tls_certificate" "main" {
+  url = aws_eks_cluster.main.identity[0].oidc[0].issuer
+
+  depends_on = [
+    aws_eks_cluster.main
+  ]
 }
 
-resource "aws_iam_policy" "AmazonEKSClusterCloudWatchPolicy" {
-  policy = data.aws_iam_policy_document.AmazonEKSClusterCloudWatchPolicy.json
+resource "aws_iam_openid_connect_provider" "cluster_oidc_provider" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.main.certificates[0].sha1_fingerprint]
+  url             = aws_eks_cluster.main.identity[0].oidc[0].issuer
+
+  depends_on = [
+    data.tls_certificate.main
+  ]
 }
-
-resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.eks_cluster_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEKSServicePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
-  role       = aws_iam_role.eks_cluster_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "AmazonEKSClusterCloudWatchPolicy" {
-  policy_arn = aws_iam_policy.AmazonEKSClusterCloudWatchPolicy.arn
-  role       = aws_iam_role.eks_cluster_role.name
-}
-
-
 
 # # codeDNS patch
 # # https://docs.aws.amazon.com/eks/latest/userguide/fargate-getting-started.html#fargate-gs-coredns
@@ -120,8 +107,4 @@ output "eks_cluster_name" {
 
 output "eks_cluster_status" {
   value = aws_eks_cluster.main.status
-}
-
-output "eks_cluster_oidc_url" {
-  value = aws_eks_cluster.main.identity[0].oidc[0].issuer
 }

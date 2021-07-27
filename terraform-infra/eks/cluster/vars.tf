@@ -12,6 +12,9 @@ variable "cluster_name" {
 variable "cluster_version" {
   type = string
 }
+variable "role_arn" {
+  type = string
+}
 variable "public_subnet_ids" {
   type    = list(string)
   default = []
@@ -27,3 +30,5 @@ variable "enabled_cluster_log_types" {
 variable "private_networking" {
   type = bool
 }
+
+

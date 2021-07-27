@@ -24,14 +24,19 @@ provider "helm" {
   }
 }
 
+module "irsa" {
+  source   = "./modules/irsa"
+  oidc_url = data.aws_eks_cluster.main.identity[0].oidc[0].issuer
+}
+
 module "aws_load_balancer_controller" {
-  source       = "./modules/aws-load-balancer-controller"
-  app_name     = var.app_name
-  stage_name   = var.stage_name
-  cluster_name = data.aws_eks_cluster.main.name
-  vpc_id       = var.vpc_id
-  region_id    = var.aws_regions[var.aws_region]
-  irsa_name    = var.irsa_name
+  source                  = "./modules/aws-load-balancer-controller"
+  app_name                = var.app_name
+  stage_name              = var.stage_name
+  cluster_name            = data.aws_eks_cluster.main.name
+  vpc_id                  = var.vpc_id
+  region_id               = var.aws_regions[var.aws_region]
+  irsa_assume_role_policy = module.irsa.assume_role_policy
 }
 
 module "kubernetes_dashboard" {
@@ -45,12 +50,12 @@ module "fargate_logging" {
 }
 
 module "app_mesh_controller" {
-  source         = "./modules/app-mesh-controller"
-  app_name       = var.app_name
-  stage_name     = var.stage_name
-  region_id      = var.aws_regions[var.aws_region]
-  irsa_name      = var.irsa_name
-  app_namespaces = var.app_namespaces
+  source                  = "./modules/app-mesh-controller"
+  app_name                = var.app_name
+  stage_name              = var.stage_name
+  region_id               = var.aws_regions[var.aws_region]
+  irsa_assume_role_policy = module.irsa.assume_role_policy
+  app_namespaces          = var.app_namespaces
 }
 
 output "appmesh_controller_sa_arn" {
