@@ -32,10 +32,33 @@ metadata:
 spec:
   awsName: simple-calculator-service.development.svc.cluster.local
   provider:
-    virtualNode:
-      virtualNodeRef:
-        name: simple-calculator-vn
+    virtualRouter:
+      virtualRouterRef:
+        name: simple-calculator-vr
         
+---
+
+apiVersion: appmesh.k8s.aws/v1beta2
+kind: VirtualRouter
+metadata:
+  
+  name: simple-calculator-vr
+spec:
+  listeners:
+    - portMapping:
+        port: 9001
+        protocol: http
+  routes:
+    - name: simple-calculator-route
+      httpRoute:
+        match:
+          prefix: /api/calculator
+        action:
+          weightedTargets:
+            - virtualNodeRef:
+                name: simple-calculator-vn
+              weight: 1
+
 ---
 
 apiVersion: appmesh.k8s.aws/v1beta2
@@ -113,8 +136,13 @@ metadata:
 spec:
   httpRoute:
     match:
-      prefix: "/api/calculator/*"
+      prefix: "/"
     action:
+      # rewrite:
+      #   hostname:
+      #     defaultTargetHostname: ENABLED
+      #   prefix:
+      #     defaultPrefix: DISABLED
       target:
         virtualService:
           virtualServiceRef:
