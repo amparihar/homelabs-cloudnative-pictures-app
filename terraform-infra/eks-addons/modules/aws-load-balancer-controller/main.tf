@@ -79,6 +79,8 @@ resource "helm_release" "load_balancer_controller" {
   chart            = "aws-load-balancer-controller"
   namespace        = "kube-system"
   create_namespace = false
+  skip_crds        = false
+  version          = "1.2.2"
 
   set {
     name  = "clusterName"
