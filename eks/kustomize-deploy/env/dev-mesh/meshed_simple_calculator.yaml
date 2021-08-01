@@ -124,6 +124,13 @@ spec:
           image: 840364872350.dkr.ecr.ap-south-1.amazonaws.com/aws-appmesh-envoy:v1.18.3.0-prod
           ports:
             - containerPort: 8080
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
             
 ---
 

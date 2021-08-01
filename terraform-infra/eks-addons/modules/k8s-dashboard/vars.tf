@@ -5,6 +5,10 @@ variable "k8s_dashboard_enabled" {
   description = "Variable indicating whether deployment is enabled"
 }
 
+variable "metrics_server_enabled" {
+  type = bool
+}
+
 # Helm
 variable "k8s_dashboard_helm_chart_name" {
   type        = string

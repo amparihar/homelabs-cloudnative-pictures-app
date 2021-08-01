@@ -16,6 +16,13 @@ spec:
           image: 785548451685.dkr.ecr.ap-south-1.amazonaws.com/todos:simple-calculator-microsvc
           ports:
             - containerPort: 9001
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 200Mi
     metadata:
       labels:
         app: simple-calculator

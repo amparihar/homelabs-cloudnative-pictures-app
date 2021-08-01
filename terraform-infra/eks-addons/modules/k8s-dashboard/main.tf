@@ -2,9 +2,9 @@
 resource "helm_release" "k8s_dashboard" {
   count = var.k8s_dashboard_enabled ? 1 : 0
 
-  name             = var.k8s_dashboard_helm_release_name
-  repository       = var.k8s_dashboard_helm_repo_url
-  chart            = var.k8s_dashboard_helm_chart_name
+  name       = var.k8s_dashboard_helm_release_name
+  repository = var.k8s_dashboard_helm_repo_url
+  chart      = var.k8s_dashboard_helm_chart_name
   # this chart version is fully compatible with k8s version 1.19
   version          = "3.0.1"
   namespace        = var.k8s_dashboard_namespace
@@ -19,7 +19,7 @@ resource "helm_release" "k8s_dashboard" {
 
   set {
     name  = "metrics-server.enabled"
-    value = "true"
+    value = tostring(var.metrics_server_enabled)
   }
 
   set {

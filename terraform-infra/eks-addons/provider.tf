@@ -39,8 +39,13 @@ module "aws_load_balancer_controller" {
   irsa_assume_role_policy = module.irsa.assume_role_policy
 }
 
+module "k8s_metrics_server" {
+  source = "./modules/k8s-metrics-server"
+}
+
 module "kubernetes_dashboard" {
-  source = "./modules/k8s-dashboard"
+  source                 = "./modules/k8s-dashboard"
+  metrics_server_enabled = !module.k8s_metrics_server.enabled
 }
 
 module "fargate_logging" {
