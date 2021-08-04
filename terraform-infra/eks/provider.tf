@@ -15,6 +15,7 @@ module "vpc" {
   public_subnets         = var.public_subnets
   private_subnets        = var.private_subnets
   cluster_name           = var.cluster_name
+  multi_az_deployment    = var.multi_az_deployment
 }
 
 output "vpcid" {
@@ -38,6 +39,7 @@ module "security-groups" {
   private_subnets            = var.private_subnets
   private_networking         = var.private_networking
   envoy_proxy_container_port = 8080
+  multi_az_deployment        = var.multi_az_deployment
 }
 
 module "iam" {

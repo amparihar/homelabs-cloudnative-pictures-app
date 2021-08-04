@@ -1,4 +1,9 @@
 
+locals {
+  multi_az_deployment_count = var.multi_az_deployment ? 2 : 1
+  private_subnets           = slice(var.private_subnets, 0, local.multi_az_deployment_count)
+}
+
 resource "aws_security_group" "envoy_proxy" {
   count  = var.create_vpc && var.private_networking ? 1 : 0
   name   = "${var.app_name}-sg-envoy-proxy-nlb-${var.stage_name}"
@@ -9,7 +14,7 @@ resource "aws_security_group" "envoy_proxy" {
     from_port   = var.envoy_proxy_container_port
     to_port     = var.envoy_proxy_container_port
     protocol    = "tcp"
-    cidr_blocks = var.private_subnets
+    cidr_blocks = local.private_subnets
   }
 
   egress {
@@ -25,9 +30,9 @@ resource "aws_security_group" "envoy_proxy" {
   }
 }
 
-resource "aws_security_group" "private_access" {
+resource "aws_security_group" "onprem_access" {
   count  = 0
-  name   = "${var.app_name}-sg-private-access-${var.stage_name}"
+  name   = "${var.app_name}-sg-onprem_access-${var.stage_name}"
   vpc_id = var.vpcid
 
   ingress {
@@ -45,7 +50,7 @@ resource "aws_security_group" "private_access" {
   }
 
   tags = {
-    Name  = "sg-private-access-${var.app_name}"
+    Name  = "sg-onprem_access-${var.app_name}"
     Stage = var.stage_name
   }
 }

@@ -19,3 +19,6 @@ variable "private_networking" {
 variable "envoy_proxy_container_port" {
   type = number
 }
+variable "multi_az_deployment" {
+  type = bool
+}

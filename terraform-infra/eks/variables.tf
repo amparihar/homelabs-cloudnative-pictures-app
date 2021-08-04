@@ -41,3 +41,7 @@ variable "k8s_version" {
 variable "private_networking" {
   type    = bool
 }
+# max 2 AZs
+variable "multi_az_deployment" {
+  type = bool
+}
