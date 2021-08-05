@@ -10,6 +10,9 @@ variable "irsa_assume_role_policy" {
 variable "region_id" {
   type = string
 }
+variable "xray_tracing_enabled" {
+  type = bool
+}
 variable "app_namespaces" {
   type = list(string)
 }

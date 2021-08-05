@@ -77,6 +77,17 @@ resource "helm_release" "app-mesh-controller" {
     name  = "serviceAccount.name"
     value = "appmesh-controller"
   }
+  # inject the AWS X-Ray daemon sidecar in each pod scheduled to run on the mesh.
+  set {
+    name  = "tracing.enabled"
+    value = tostring(var.xray_tracing_enabled)
+  }
+
+  # default provider
+  set {
+    name  = "tracing.provider"
+    value = "x-ray"
+  }
 
   # set {
   #   name  = "image.repository"
