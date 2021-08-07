@@ -1,8 +1,0 @@
-resources:
-  - namespace.yaml
-  - hpa.yaml
-  - simple_calculator.yaml
-  - service_account.yaml
-  - meshed_simple_calculator.yaml
-  
-namespace: development
