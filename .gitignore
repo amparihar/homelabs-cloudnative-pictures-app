@@ -8,9 +8,4 @@ node_modules
 .cdk.staging
 cdk.out
 
-*.tfstate
-*.tfstate.*
 
-#  Local .terraform directories
-**/.terraform/*
-*out.exec-plan*
