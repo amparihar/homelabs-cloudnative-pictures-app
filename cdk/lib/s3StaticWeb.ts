@@ -27,10 +27,8 @@ export class S3StaticWebStack extends cdk.Stack {
             sources : [_s3_deployment.Source.asset("../frontend/container/build")]
         });
         
-        new cdk.CfnOutput(this, "web-bucket-name", {
-            value: webBucket.bucketName,
+        new cdk.CfnOutput(this, "static-web-url", {
+            value: webBucket.bucketWebsiteUrl,
         });
-        
     }
-    
 }
