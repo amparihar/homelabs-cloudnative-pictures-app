@@ -40,6 +40,7 @@ export class HomeLabsPipStack extends cdk.Stack {
           ],
         },
       ],
+      autoDeleteObjects : true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 

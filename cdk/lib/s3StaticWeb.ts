@@ -8,11 +8,11 @@ export class S3StaticWebStack extends cdk.Stack {
     constructor(parent: cdk.App, id: string, props?: cdk.StackProps){
         super(parent, id, props);
         
-        const webBucket = new _s3.Bucket(parent, "web-bucket", {
+        const webBucket = new _s3.Bucket(this, "web-bucket", {
             websiteErrorDocument: "index.html",
             websiteIndexDocument: "index.html",
-            objectOwnership : _s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
-            //blockPublicAccess : new _s3.BlockPublicAccess({})
+            autoDeleteObjects : true,
+            removalPolicy : cdk.RemovalPolicy.DESTROY
         });
         
         webBucket.addToResourcePolicy(new _iam.PolicyStatement({
@@ -20,13 +20,16 @@ export class S3StaticWebStack extends cdk.Stack {
             actions : ["s3:GetObject"],
             principals: [new _iam.AnyPrincipal()],
             resources: [webBucket.arnForObjects("*")]
-        }))
+        }));
         
-        new _s3_deployment.BucketDeployment(parent, "web-deployment", {
+        new _s3_deployment.BucketDeployment(this, "web-deployment", {
             destinationBucket : webBucket,
-            sources : [_s3_deployment.Source.asset("../../../frontend/container/build")]
-            
-        })
+            sources : [_s3_deployment.Source.asset("../frontend/container/build")]
+        });
+        
+        new cdk.CfnOutput(this, "web-bucket-name", {
+            value: webBucket.bucketName,
+        });
         
     }
     

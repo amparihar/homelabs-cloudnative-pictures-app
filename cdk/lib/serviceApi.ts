@@ -79,7 +79,7 @@ export class ServiceApi extends cdk.Construct {
           },
         },
         {
-          selectionPattern: "(\n|.)+",
+          selectionPattern: "5\d{2}",
           statusCode: "500",
           responseTemplates: {
             "application/json": JSON.stringify({
