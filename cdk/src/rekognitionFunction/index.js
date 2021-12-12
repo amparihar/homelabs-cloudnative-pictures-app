@@ -12,8 +12,8 @@ exports.run = async (event, context) => {
     for (let idx = 0; idx < records.length; idx++) {
       const record = records[idx],
         body = JSON.parse(record.body) || { Records: [] },
-        bodyRecords = body.Records;
-
+        bodyRecords = JSON.parse(body.Message).Records;
+        
       for (let jdx = 0; jdx < bodyRecords.length; jdx++) {
         const bodyRecord = bodyRecords[jdx];
         let name = bodyRecord.s3.bucket.name,

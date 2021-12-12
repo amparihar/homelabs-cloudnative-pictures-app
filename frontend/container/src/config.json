@@ -1,11 +1,11 @@
 {
   "api": {
-    "invokeUrl": "https://1234567890.execute-api.ap-south-1.amazonaws.com/prod/",
+    "invokeUrl": "https://.execute-api.us-east-2.amazonaws.com/prod/",
     "name": "service-api",
     "path": "pictures"
   },
   "cognito": {
-    "REGION": "ap-south-1",
+    "REGION": "us-east-2",
     "USER_POOL_ID": "",
     "APP_CLIENT_ID": "",
     "IDENTITY_POOL_ID": ""

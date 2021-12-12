@@ -9,6 +9,9 @@ import * as _iam from "@aws-cdk/aws-iam";
 import * as _logs from "@aws-cdk/aws-logs";
 import * as _sqs from "@aws-cdk/aws-sqs";
 
+import * as _sns from "@aws-cdk/aws-sns";
+import * as _sns_sub from "@aws-cdk/aws-sns-subscriptions";
+
 import { ServiceApi } from "./serviceApi";
 import { Cognito } from "./cognito";
 
@@ -159,12 +162,12 @@ export class HomeLabsPipStack extends cdk.Stack {
       },
       userPoolArns: [cognito.userPool.userPoolArn],
     });
-
+    
+    // SNS Topic
+    const imageTopic = new _sns.Topic(this, "image-topic");
+  
     // SQS
-    // //const messageService = new MessageService(this, "message-service");
-    // // const imageQueue = messageService.imageQueue
-
-    const dlQueue = new _sqs.Queue(this, "dlImageQueue", {
+    const dlImageQueue = new _sqs.Queue(this, "dlImageQueue", {
       queueName: "pip-image-buffer-dlqueue",
       visibilityTimeout: cdk.Duration.seconds(30), // this is the default
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
@@ -178,16 +181,19 @@ export class HomeLabsPipStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       deadLetterQueue: {
         maxReceiveCount: 2,
-        queue: dlQueue,
+        queue: dlImageQueue,
       },
     });
 
-    rekFn.addEventSource(new _lambdaEventSources.SqsEventSource(imageQueue));
-
     imageBucket.addEventNotification(
       _s3.EventType.OBJECT_CREATED,
-      new _s3n.SqsDestination(imageQueue),
+      //new _s3n.SqsDestination(imageQueue),
+      new _s3n.SnsDestination(imageTopic),
       { prefix: "private/" }
     );
+
+    imageTopic.addSubscription(new _sns_sub.SqsSubscription(imageQueue));
+
+    rekFn.addEventSource(new _lambdaEventSources.SqsEventSource(imageQueue));
   }
 }
