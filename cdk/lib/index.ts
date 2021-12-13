@@ -14,6 +14,7 @@ import * as _sns_sub from "@aws-cdk/aws-sns-subscriptions";
 
 import { ServiceApi } from "./serviceApi";
 import { Cognito } from "./cognito";
+import { ThumbnailWorker } from "./thumbnailWorker";
 
 export class HomeLabsPipStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
@@ -164,9 +165,11 @@ export class HomeLabsPipStack extends cdk.Stack {
     });
     
     // SNS Topic
+    // FAN OUT 
     const imageTopic = new _sns.Topic(this, "image-topic");
   
     // SQS
+    // Image Queue
     const dlImageQueue = new _sqs.Queue(this, "dlImageQueue", {
       queueName: "pip-image-buffer-dlqueue",
       visibilityTimeout: cdk.Duration.seconds(30), // this is the default
@@ -184,6 +187,25 @@ export class HomeLabsPipStack extends cdk.Stack {
         queue: dlImageQueue,
       },
     });
+    
+    // Thumbnail Queue
+    const dlThumbQueue = new _sqs.Queue(this, "dlImageQueue", {
+      queueName: "pip-image-buffer-dlqueue",
+      visibilityTimeout: cdk.Duration.seconds(30), // this is the default
+      receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const thumbQueue = new _sqs.Queue(this, "imageQueue", {
+      queueName: "pip-image-buffer-queue",
+      visibilityTimeout: cdk.Duration.seconds(180), // default is 30s
+      receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      deadLetterQueue: {
+        maxReceiveCount: 10,
+        queue: dlThumbQueue,
+      },
+    });
 
     imageBucket.addEventNotification(
       _s3.EventType.OBJECT_CREATED,
@@ -193,7 +215,15 @@ export class HomeLabsPipStack extends cdk.Stack {
     );
 
     imageTopic.addSubscription(new _sns_sub.SqsSubscription(imageQueue));
+    imageTopic.addSubscription(new _sns_sub.SqsSubscription(thumbQueue));
 
     rekFn.addEventSource(new _lambdaEventSources.SqsEventSource(imageQueue));
+    
+    // thumbnail ECS worker task
+    const thumbnailWorker = new ThumbnailWorker(this, "thumbnail-worker-construct", {
+      imageBucket : imageBucket,
+      thumbnailQueue: thumbQueue
+    });
+    
   }
 }
