@@ -189,14 +189,14 @@ export class HomeLabsPipStack extends cdk.Stack {
     });
     
     // Thumbnail Queue
-    const dlThumbQueue = new _sqs.Queue(this, "dlImageQueue", {
+    const dlThumbQueue = new _sqs.Queue(this, "dlThumbQueue", {
       queueName: "pip-image-buffer-dlqueue",
       visibilityTimeout: cdk.Duration.seconds(30), // this is the default
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    const thumbQueue = new _sqs.Queue(this, "imageQueue", {
+    const thumbQueue = new _sqs.Queue(this, "thumbQueue", {
       queueName: "pip-image-buffer-queue",
       visibilityTimeout: cdk.Duration.seconds(180), // default is 30s
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
