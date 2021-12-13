@@ -1,6 +1,6 @@
 const AWS = require("aws-sdk");
 const https = require('https');
-const { Consumer } = require('sqs-consumer');
+const { Consumer } = require('sqs - consumer');
 
 var s3 = new AWS.S3(),
     queueUrl = process.env.THUMBNAIL_QUEUE,

@@ -40,11 +40,11 @@ export class HomeLabsPipStack extends cdk.Stack {
             {
               transitionAfter: cdk.Duration.days(30),
               storageClass: _s3.StorageClass.INFREQUENT_ACCESS,
-            }
+            },
           ],
         },
       ],
-      autoDeleteObjects : true,
+      autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -68,11 +68,11 @@ export class HomeLabsPipStack extends cdk.Stack {
             {
               transitionAfter: cdk.Duration.days(30),
               storageClass: _s3.StorageClass.INFREQUENT_ACCESS,
-            }
+            },
           ],
         },
       ],
-      autoDeleteObjects : true,
+      autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
@@ -80,7 +80,7 @@ export class HomeLabsPipStack extends cdk.Stack {
     new cdk.CfnOutput(this, "image-bucket-name", {
       value: imageBucket.bucketName,
     });
-    
+
     new cdk.CfnOutput(this, "thumb-bucket-name", {
       value: thumbBucket.bucketName,
     });
@@ -195,11 +195,11 @@ export class HomeLabsPipStack extends cdk.Stack {
       },
       userPoolArns: [cognito.userPool.userPoolArn],
     });
-    
+
     // SNS Topic
-    // FAN OUT 
+    // FAN OUT
     const imageTopic = new _sns.Topic(this, "image-topic");
-  
+
     // SQS
     // Image Queue
     const dlImageQueue = new _sqs.Queue(this, "dlImageQueue", {
@@ -219,7 +219,7 @@ export class HomeLabsPipStack extends cdk.Stack {
         queue: dlImageQueue,
       },
     });
-    
+
     // Thumbnail Queue
     const dlThumbQueue = new _sqs.Queue(this, "dlThumbQueue", {
       queueName: "pip-thumb-buffer-dlqueue",
@@ -250,13 +250,22 @@ export class HomeLabsPipStack extends cdk.Stack {
     imageTopic.addSubscription(new _sns_sub.SqsSubscription(thumbQueue));
 
     rekFn.addEventSource(new _lambdaEventSources.SqsEventSource(imageQueue));
-    
+
     // thumbnail ECS worker task
-    const thumbnailWorker = new ThumbnailWorker(this, "thumbnail-worker-construct", {
-      imageBucket : imageBucket,
-      thumbnailBucket: thumbBucket,
-      thumbnailQueue: thumbQueue
-    });
-    
+    const thumbnailWorker = new ThumbnailWorker(
+      this,
+      "thumbnail-worker-construct",
+      {
+        imageBucket: imageBucket,
+        thumbnailBucket: thumbBucket,
+        thumbnailQueue: thumbQueue,
+        workerInstanceCount: 1,
+      }
+    );
+
+    // Grant Access to ECS Task
+    imageBucket.grantRead(thumbnailWorker.workerTaskDef.taskRole);
+    thumbBucket.grantWrite(thumbnailWorker.workerTaskDef.taskRole);
+    thumbQueue.grantConsumeMessages(thumbnailWorker.workerTaskDef.taskRole);
   }
 }
