@@ -7,12 +7,13 @@ const rekognition = new AWS.Rekognition(),
 
 exports.run = async (event, context) => {
   try {
+    
     const { Records: records = [] } = event;
 
     for (let idx = 0; idx < records.length; idx++) {
       const record = records[idx],
         body = JSON.parse(record.body) || { Records: [] },
-        bodyRecords = JSON.parse(body.Message).Records;
+        bodyRecords = JSON.parse(body.Message).Records || [];
         
       for (let jdx = 0; jdx < bodyRecords.length; jdx++) {
         const bodyRecord = bodyRecords[jdx];

@@ -1,6 +1,6 @@
 {
   "api": {
-    "invokeUrl": "https://.execute-api.us-east-2.amazonaws.com/prod/",
+    "invokeUrl": "https://j4jklm8tl6.execute-api.us-east-2.amazonaws.com/prod/",
     "name": "service-api",
     "path": "pictures"
   },

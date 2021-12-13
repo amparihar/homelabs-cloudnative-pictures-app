@@ -6,7 +6,7 @@ import * as _sqs from "@aws-cdk/aws-sqs";
 
 export interface IThumbnailWorkerProps extends cdk.StackProps {
     imageBucket : _s3.Bucket
-    thumbnailBucket? : _s3.Bucket
+    thumbnailBucket : _s3.Bucket
     thumbnailQueue : _sqs.Queue
 };
 
@@ -33,24 +33,28 @@ export class ThumbnailWorker extends cdk.Construct {
         
         // Fargate Task Def
         const thumbnailTaskDef = new _ecs.FargateTaskDefinition(this, "thumbnail-task-def", {
-            cpu: 1024
+            cpu: 512,
+            memoryLimitMiB: 2048
         });
         
-        thumbnailTaskDef.addContainer("thumbnail-task-container" , {
+        thumbnailTaskDef.addContainer("thumbnail-worker-container" , {
             image : _ecs.ContainerImage.fromAsset("src/thumbnailWorker"),
+            portMappings: [{
+                containerPort: 8080
+            }],
             environment :{
                 "IMAGE_BUCKET": props.imageBucket.bucketName,
-                "THUMBNAIL_BUCKET": "",
+                "THUMBNAIL_BUCKET": props.thumbnailBucket.bucketName,
                 "THUMBNAIL_QUEUE" : props.thumbnailQueue.queueUrl
-                
             },
+            
             logging: _ecs.LogDrivers.awsLogs({
-                streamPrefix: "thumbnail-task"
+                streamPrefix: "thumbnail-worker"
             })
         });
         
         // ECS Fargate Service
-        var thumbnailService = new _ecs.FargateService(this, "thumbnail-service", {
+        var thumbnailService = new _ecs.FargateService(this, "thumbnail-worker-service", {
             assignPublicIp: true,
             taskDefinition: thumbnailTaskDef,
             cluster,
@@ -59,6 +63,7 @@ export class ThumbnailWorker extends cdk.Construct {
         
         // Grant Access
         props.imageBucket.grantRead(thumbnailTaskDef.taskRole);
+        props.thumbnailBucket.grantWrite(thumbnailTaskDef.taskRole);
         props.thumbnailQueue.grantConsumeMessages(thumbnailTaskDef.taskRole);
         
     }

@@ -48,9 +48,41 @@ export class HomeLabsPipStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    const thumbBucket = new _s3.Bucket(this, "thumb-bucket", {
+      versioned: false,
+      encryption: _s3.BucketEncryption.KMS_MANAGED,
+      publicReadAccess: false,
+      blockPublicAccess: _s3.BlockPublicAccess.BLOCK_ALL,
+      cors: [
+        {
+          allowedMethods: [_s3.HttpMethods.GET, _s3.HttpMethods.PUT],
+          allowedOrigins: ["*"],
+          allowedHeaders: ["*"],
+          //maxAge: 3000,
+        },
+      ],
+      lifecycleRules: [
+        {
+          expiration: cdk.Duration.days(60),
+          transitions: [
+            {
+              transitionAfter: cdk.Duration.days(30),
+              storageClass: _s3.StorageClass.INFREQUENT_ACCESS,
+            }
+          ],
+        },
+      ],
+      autoDeleteObjects : true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     // output
     new cdk.CfnOutput(this, "image-bucket-name", {
       value: imageBucket.bucketName,
+    });
+    
+    new cdk.CfnOutput(this, "thumb-bucket-name", {
+      value: thumbBucket.bucketName,
     });
 
     const imageTable = new _dynamodb.Table(this, "image-table", {
@@ -190,14 +222,14 @@ export class HomeLabsPipStack extends cdk.Stack {
     
     // Thumbnail Queue
     const dlThumbQueue = new _sqs.Queue(this, "dlThumbQueue", {
-      queueName: "pip-image-buffer-dlqueue",
+      queueName: "pip-thumb-buffer-dlqueue",
       visibilityTimeout: cdk.Duration.seconds(30), // this is the default
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const thumbQueue = new _sqs.Queue(this, "thumbQueue", {
-      queueName: "pip-image-buffer-queue",
+      queueName: "pip-thumb-buffer-queue",
       visibilityTimeout: cdk.Duration.seconds(180), // default is 30s
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -222,6 +254,7 @@ export class HomeLabsPipStack extends cdk.Stack {
     // thumbnail ECS worker task
     const thumbnailWorker = new ThumbnailWorker(this, "thumbnail-worker-construct", {
       imageBucket : imageBucket,
+      thumbnailBucket: thumbBucket,
       thumbnailQueue: thumbQueue
     });
     
