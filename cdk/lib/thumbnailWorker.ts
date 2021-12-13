@@ -33,7 +33,7 @@ export class ThumbnailWorker extends cdk.Construct {
         
         // Fargate Task Def
         const thumbnailTaskDef = new _ecs.FargateTaskDefinition(this, "thumbnail-task-def", {
-            cpu: 512,
+            cpu: 1024,
             memoryLimitMiB: 2048
         });
         
