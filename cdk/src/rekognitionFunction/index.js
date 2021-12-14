@@ -12,7 +12,7 @@ exports.run = async (event, context) => {
 
     for (let idx = 0; idx < records.length; idx++) {
       const record = records[idx],
-        body = JSON.parse(record.body) || { Records: [] },
+        body = JSON.parse(record.body) || { Message: {} },
         bodyRecords = JSON.parse(body.Message).Records || [];
         
       for (let jdx = 0; jdx < bodyRecords.length; jdx++) {
