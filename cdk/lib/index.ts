@@ -201,7 +201,7 @@ export class HomeLabsPipStack extends cdk.Stack {
     const imageTopic = new _sns.Topic(this, "image-topic");
 
     // SQS
-    // Image Queue
+    // Image Queues
     const dlImageQueue = new _sqs.Queue(this, "dlImageQueue", {
       queueName: "pip-image-buffer-dlqueue",
       visibilityTimeout: cdk.Duration.seconds(30), // this is the default
@@ -211,8 +211,9 @@ export class HomeLabsPipStack extends cdk.Stack {
 
     const imageQueue = new _sqs.Queue(this, "imageQueue", {
       queueName: "pip-image-buffer-queue",
-      visibilityTimeout: cdk.Duration.seconds(180), // default is 30s
+      visibilityTimeout: cdk.Duration.seconds(60), // default is 30s
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
+      retentionPeriod: cdk.Duration.days(14),
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       deadLetterQueue: {
         maxReceiveCount: 2,
@@ -230,22 +231,24 @@ export class HomeLabsPipStack extends cdk.Stack {
 
     const thumbQueue = new _sqs.Queue(this, "thumbQueue", {
       queueName: "pip-thumb-buffer-queue",
-      visibilityTimeout: cdk.Duration.seconds(180), // default is 30s
+      visibilityTimeout: cdk.Duration.seconds(90), // default is 30s
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
+      retentionPeriod: cdk.Duration.days(14),
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       deadLetterQueue: {
-        maxReceiveCount: 10,
+        maxReceiveCount: 2,
         queue: dlThumbQueue,
       },
     });
 
+    // Fan Out, there can only be 1 event notifications for a combination of S3 event Type and prefix
     imageBucket.addEventNotification(
       _s3.EventType.OBJECT_CREATED,
       //new _s3n.SqsDestination(imageQueue),
       new _s3n.SnsDestination(imageTopic),
       { prefix: "private/" }
     );
-
+    
     imageTopic.addSubscription(new _sns_sub.SqsSubscription(imageQueue));
     imageTopic.addSubscription(new _sns_sub.SqsSubscription(thumbQueue));
 
