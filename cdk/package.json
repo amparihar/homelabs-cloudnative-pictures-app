@@ -29,6 +29,7 @@
     "@aws-cdk/aws-dynamodb": "^1.135.0",
     "@aws-cdk/aws-ec2": "^1.135.0",
     "@aws-cdk/aws-ecs": "^1.135.0",
+    "@aws-cdk/aws-events-targets": "^1.135.0",
     "@aws-cdk/aws-iam": "^1.135.0",
     "@aws-cdk/aws-lambda": "^1.135.0",
     "@aws-cdk/aws-lambda-event-sources": "^1.135.0",

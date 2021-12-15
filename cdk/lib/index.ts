@@ -241,7 +241,7 @@ export class HomeLabsPipStack extends cdk.Stack {
       },
     });
 
-    // Fan Out, there can only be 1 event notifications for a combination of S3 event Type and prefix
+    // Fan Out, there can only be 1 event notifications for a combination of an S3 event Type and prefix
     imageBucket.addEventNotification(
       _s3.EventType.OBJECT_CREATED,
       //new _s3n.SqsDestination(imageQueue),
