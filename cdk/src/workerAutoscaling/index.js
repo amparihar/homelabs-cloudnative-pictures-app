@@ -1,30 +1,43 @@
-const AWS = require("aws-sdk");
-var sqs = new AWS.SQS(),
-    ecs = new AWS.ECS();
-    
+const AWS = require("aws-sdk"),
+    sqs = new AWS.SQS(),
+    ecs = new AWS.ECS(),
+    cloudwatch = new AWS.CloudWatch();
+
 module.exports.run = async (event, context) => {
+    var queueAttributes,
+        ecsServices;
 
-
-    var sqsParams = {
+    const sqsParams = {
         QueueUrl: process.env.QUEUE_NAME,
-        AttributeName: [
-            "All"
+        AttributeNames: [
+            "ApproximateNumberOfMessages",
+            "ApproximateNumberOfMessagesDelayed",
+            "ApproximateNumberOfMessagesNotVisible"
         ]
     };
-    sqs.getQueueAttributes(sqsParams, function(err, data) {
-        if (err) console.log(err, err.message); // an error occurred
-        else console.log("QueueAttributes ", data); // successful response
-    });
 
-    var ecsParams = {
-        Services: [
-            process.env.ECS_SERVICE
-        ],
-        Cluster: process.env.CLUSTER
+    ({ Attributes: queueAttributes = {} } = await sqs.getQueueAttributes(sqsParams).promise());
+
+    const ecsParams = {
+        services: [process.env.ECS_SERVICE],
+        cluster: process.env.CLUSTER
     };
-    ecs.describeServices(ecsParams, function(err, data) {
-        if (err) console.log(err, err.message); // an error occurred
-        else console.log("ECS Service Attributes", data, data.services[0].desiredCount); // successful response
-    });
+    ({ services: ecsServices = [] } = await ecs.describeServices(ecsParams).promise());
+
+
+
+    var cwParams = {
+        MetricData: [{
+            MetricName: 'STRING_VALUE',
+            Dimensions: [{
+                Name: 'STRING_VALUE',
+                Value: 'STRING_VALUE'
+            }],
+            Timestamp: new Date || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789,
+            Unit: "None",
+            Value: parseInt(queueAttributes.ApproximateNumberOfMessages) / ecsServices[0].desiredCount,
+        }],
+        Namespace: 'STRING_VALUE'
+    };
 
 }
