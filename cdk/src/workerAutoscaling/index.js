@@ -7,7 +7,7 @@ module.exports.run = async (event, context) => {
 
     var sqsParams = {
         QueueUrl: process.env.QUEUE_NAME,
-        AttributeNames: [
+        AttributeName: [
             "All"
         ]
     };
@@ -17,10 +17,10 @@ module.exports.run = async (event, context) => {
     });
 
     var ecsParams = {
-        services: [
+        Services: [
             process.env.ECS_SERVICE
         ],
-        cluster: process.env.CLUSTER
+        Cluster: process.env.CLUSTER
     };
     ecs.describeServices(ecsParams, function(err, data) {
         if (err) console.log(err, err.message); // an error occurred
