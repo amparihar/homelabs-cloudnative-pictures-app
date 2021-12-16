@@ -8,13 +8,21 @@ export interface IThumbnailWorkerProps extends cdk.StackProps {
   imageBucket: _s3.Bucket;
   thumbnailBucket: _s3.Bucket;
   thumbnailQueue: _sqs.Queue;
-  workerInstanceCount: number
+  workerInstanceCount: number;
 }
 
 export class ThumbnailWorker extends cdk.Construct {
   private _workerTaskDef: _ecs.FargateTaskDefinition;
+  private _workerService: _ecs.FargateService;
+  private _cluster : _ecs.Cluster;
   public get workerTaskDef() {
     return this._workerTaskDef;
+  }
+  public get workerService() {
+    return this._workerService;
+  }
+  public get cluster() {
+    return this._cluster;
   }
   constructor(scope: cdk.Stack, id: string, props: IThumbnailWorkerProps) {
     super(scope, id);
@@ -30,7 +38,7 @@ export class ThumbnailWorker extends cdk.Construct {
     });
 
     // Cluster
-    const cluster = new _ecs.Cluster(this, "thumbnail-kluster", {
+    this._cluster = new _ecs.Cluster(this, "thumbnail-kluster", {
       containerInsights: false,
       vpc,
     });
@@ -65,13 +73,13 @@ export class ThumbnailWorker extends cdk.Construct {
     });
 
     // ECS Fargate Service
-    var thumbnailService = new _ecs.FargateService(
+    this._workerService = new _ecs.FargateService(
       this,
       "thumbnail-worker-service",
       {
         assignPublicIp: true,
         taskDefinition: this._workerTaskDef,
-        cluster,
+        cluster: this._cluster,
         desiredCount: props.workerInstanceCount,
       }
     );

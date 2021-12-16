@@ -15,6 +15,7 @@ import * as _sns_sub from "@aws-cdk/aws-sns-subscriptions";
 import { ServiceApi } from "./serviceApi";
 import { Cognito } from "./cognito";
 import { ThumbnailWorker } from "./thumbnailWorker";
+import { WorkerAutoscalingMetricBuilder } from "./workerAutoscalingMetricBuilder";
 
 export class HomeLabsPipStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
@@ -248,7 +249,7 @@ export class HomeLabsPipStack extends cdk.Stack {
       new _s3n.SnsDestination(imageTopic),
       { prefix: "private/" }
     );
-    
+
     imageTopic.addSubscription(new _sns_sub.SqsSubscription(imageQueue));
     imageTopic.addSubscription(new _sns_sub.SqsSubscription(thumbQueue));
 
@@ -270,5 +271,15 @@ export class HomeLabsPipStack extends cdk.Stack {
     imageBucket.grantRead(thumbnailWorker.workerTaskDef.taskRole);
     thumbBucket.grantWrite(thumbnailWorker.workerTaskDef.taskRole);
     thumbQueue.grantConsumeMessages(thumbnailWorker.workerTaskDef.taskRole);
+
+    const thumbnailWorkerMetricBuilder = new WorkerAutoscalingMetricBuilder(
+      this,
+      "worker-autoscaling-metric-builder",
+      {
+        thumbQueue,
+        thumbWorkerService: thumbnailWorker.workerService,
+        cluster: thumbnailWorker.cluster.clusterName
+      }
+    );
   }
 }
