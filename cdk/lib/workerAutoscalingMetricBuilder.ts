@@ -36,9 +36,10 @@ export class WorkerAutoscalingMetricBuilder extends cdk.Construct {
         memorySize: 1024,
         timeout: cdk.Duration.seconds(30),
         environment: {
-          QUEUE_NAME: props.thumbQueue.queueUrl,
-          ECS_SERVICE: props.thumbWorkerService.serviceName,
-          CLUSTER: props.cluster
+          QUEUE_URL: props.thumbQueue.queueUrl,
+          QUEUE_NAME: props.thumbQueue.queueName,
+          ECS_SERVICE_NAME: props.thumbWorkerService.serviceName,
+          ECS_CLUSTER_NAME: props.cluster
         },
         logRetention: _logs.RetentionDays.ONE_DAY,
       }

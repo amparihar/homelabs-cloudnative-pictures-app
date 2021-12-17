@@ -8,7 +8,7 @@ module.exports.run = async (event, context) => {
         ecsServices;
 
     const sqsParams = {
-        QueueUrl: process.env.QUEUE_NAME,
+        QueueUrl: process.env.QUEUE_URL,
         AttributeNames: [
             "ApproximateNumberOfMessages",
             "ApproximateNumberOfMessagesDelayed",
@@ -16,28 +16,34 @@ module.exports.run = async (event, context) => {
         ]
     };
 
-    ({ Attributes: queueAttributes = {} } = await sqs.getQueueAttributes(sqsParams).promise());
+    ({ Attributes: queueAttributes = { ApproximateNumberOfMessages: "0" } } = await sqs.getQueueAttributes(sqsParams).promise());
 
     const ecsParams = {
-        services: [process.env.ECS_SERVICE],
-        cluster: process.env.CLUSTER
+        services: [process.env.ECS_SERVICE_NAME],
+        cluster: process.env.ECS_CLUSTER_NAME
     };
-    ({ services: ecsServices = [] } = await ecs.describeServices(ecsParams).promise());
+    ({ services: ecsServices = [{ desiredCount: 0 }] } = await ecs.describeServices(ecsParams).promise());
 
 
-
+    // Cloud Watch putMerticdata
     var cwParams = {
         MetricData: [{
-            MetricName: 'STRING_VALUE',
+            MetricName: 'ApproximateNumberOfMessages',
             Dimensions: [{
-                Name: 'STRING_VALUE',
-                Value: 'STRING_VALUE'
+                Name: 'ClusterName',
+                Value: process.env.ECS_CLUSTER_NAME
+            }, {
+                Name: 'ServiceName',
+                Value: process.env.ECS_SERVICE_NAME
             }],
-            Timestamp: new Date || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789,
+            Timestamp: new Date,
             Unit: "None",
-            Value: parseInt(queueAttributes.ApproximateNumberOfMessages) / ecsServices[0].desiredCount,
+            Value: ecsServices[0].desiredCount > 0 ? (parseInt(queueAttributes.ApproximateNumberOfMessages) / ecsServices[0].desiredCount) : 0,
         }],
-        Namespace: 'STRING_VALUE'
+        Namespace: 'ECS'
     };
+    
+    const putMetricResponse = await cloudwatch.putMetricData(cwParams).promise();
+    console.log("putMetricResponse", putMetricResponse);
 
 }
