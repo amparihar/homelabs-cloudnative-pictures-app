@@ -263,7 +263,7 @@ export class HomeLabsPipStack extends cdk.Stack {
         imageBucket: imageBucket,
         thumbnailBucket: thumbBucket,
         thumbnailQueue: thumbQueue,
-        workerInstanceCount: 0,
+        workerInstanceCount: 1,
       }
     );
 
