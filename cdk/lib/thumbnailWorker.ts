@@ -3,7 +3,10 @@ import * as _ec2 from "@aws-cdk/aws-ec2";
 import * as _ecs from "@aws-cdk/aws-ecs";
 import * as _s3 from "@aws-cdk/aws-s3";
 import * as _sqs from "@aws-cdk/aws-sqs";
-import { MetricAggregationType } from "@aws-cdk/aws-applicationautoscaling";
+import * as _cloudwatch from "@aws-cdk/aws-cloudwatch";
+import * as _autoscaling from "@aws-cdk/aws-autoscaling";
+import * as _cloudwatch_actions from "@aws-cdk/aws-cloudwatch-actions";
+import * as _applicationAutoScaling from "@aws-cdk/aws-applicationautoscaling";
 
 export interface IThumbnailWorkerProps extends cdk.StackProps {
   imageBucket: _s3.Bucket;
@@ -85,21 +88,89 @@ export class ThumbnailWorker extends cdk.Construct {
       }
     );
 
-    const workerServiceAutoScaling = this.workerService.autoScaleTaskCount({
-      maxCapacity: 3,
-    });
-    workerServiceAutoScaling.scaleOnMetric(
-      "approximate-number-of-messages-visible",
+    // const workerServiceAutoScaling = this.workerService.autoScaleTaskCount({
+    //   maxCapacity: 3,
+    // });
+    // workerServiceAutoScaling.scaleOnMetric(
+    //   "approximate-number-of-messages-visible",
+    //   {
+    //     metric: props.thumbnailQueue.metricApproximateNumberOfMessagesVisible(),
+    //     scalingSteps: [
+    //       { lower: 0, change: -1 },
+    //       { lower: 1, upper: 500, change: +1 },
+    //       { lower: 500, upper: 1000, change: +1 },
+    //       { lower: 1000, change: +1 },
+    //     ],
+    //     evaluationPeriods: 2,
+    //   }
+    // );
+
+    // CloudWatch Alarms
+    const workerServicAutoScalOutpAlarm = new _cloudwatch.Alarm(
+      this,
+      "worker-service-auto-scale-out-alarm",
       {
-        metric: props.thumbnailQueue.metricApproximateNumberOfMessagesVisible(),
-        scalingSteps: [
-          { lower: 0, change: -1 },
-          { lower: 1, upper: 500, change: +1 },
-          { lower: 500, upper: 1000, change: +1 },
-          { lower: 1000, change: +1 },
-        ],
-        evaluationPeriods: 2,
+        metric: props.thumbnailQueue
+          .metricApproximateNumberOfMessagesVisible()
+          .with({
+            statistic: "max",
+            period: cdk.Duration.minutes(1),
+          }),
+
+        evaluationPeriods: 3,
+        datapointsToAlarm: 2,
+        threshold: 1,
+        comparisonOperator:
+          _cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        treatMissingData: _cloudwatch.TreatMissingData.MISSING,
       }
     );
+
+    const workerServicAutoScaleInAlarm = new _cloudwatch.Alarm(
+      this,
+      "worker-service-auto-scale-in-alarm",
+      {
+        metric: props.thumbnailQueue
+          .metricApproximateNumberOfMessagesVisible()
+          .with({
+            statistic: "max",
+            period: cdk.Duration.minutes(1),
+          }),
+
+        evaluationPeriods: 3,
+        datapointsToAlarm: 2,
+        threshold: 1,
+        comparisonOperator: _cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
+        treatMissingData: _cloudwatch.TreatMissingData.MISSING,
+      }
+    );
+
+    //// Application Autoscaling
+    const workerServiceScalableTarget =
+      new _applicationAutoScaling.ScalableTarget(
+        this,
+        "worker-service-scalable-target",
+        {
+          serviceNamespace: _applicationAutoScaling.ServiceNamespace.ECS,
+          maxCapacity: 3,
+          minCapacity: 1,
+          resourceId: `service:${this._cluster.clusterName}:${this._workerService.serviceName}`,
+          scalableDimension: "ecs:service:DesiredCount",
+        }
+      );
+
+    const stepScalingAction = new _applicationAutoScaling.StepScalingAction(
+      this,
+      "",
+      {
+        scalingTarget: workerServiceScalableTarget,
+        
+      }
+    );
+
+    // const applicationScalingAction =
+    //   new _cloudwatch_actions.ApplicationScalingAction(stepScalingAction);
+
+    // workerServicAutoScalOutpAlarm.addAlarmAction(applicationScalingAction);
   }
 }
