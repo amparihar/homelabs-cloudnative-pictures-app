@@ -3,6 +3,7 @@ import * as _ec2 from "@aws-cdk/aws-ec2";
 import * as _ecs from "@aws-cdk/aws-ecs";
 import * as _s3 from "@aws-cdk/aws-s3";
 import * as _sqs from "@aws-cdk/aws-sqs";
+import {MetricAggregationType} from "@aws-cdk/aws-applicationautoscaling"
 
 export interface IThumbnailWorkerProps extends cdk.StackProps {
   imageBucket: _s3.Bucket;
@@ -14,7 +15,7 @@ export interface IThumbnailWorkerProps extends cdk.StackProps {
 export class ThumbnailWorker extends cdk.Construct {
   private _workerTaskDef: _ecs.FargateTaskDefinition;
   private _workerService: _ecs.FargateService;
-  private _cluster : _ecs.Cluster;
+  private _cluster: _ecs.Cluster;
   public get workerTaskDef() {
     return this._workerTaskDef;
   }
@@ -83,5 +84,19 @@ export class ThumbnailWorker extends cdk.Construct {
         desiredCount: props.workerInstanceCount,
       }
     );
+
+    const workerServiceAutoScaling = this.workerService.autoScaleTaskCount({
+      maxCapacity: 3,
+    });
+    workerServiceAutoScaling.scaleOnMetric("approximate-number-of-messages-visible", {
+      metric: props.thumbnailQueue.metricApproximateNumberOfMessagesVisible(),
+      scalingSteps: [
+        { lower: 0, upper: 500, change: +1 },
+        { lower: 500, upper: 1000, change: +1 },
+        { lower: 1000, change: +1 },
+      ],
+      evaluationPeriods: 2,
+      metricAggregationType: MetricAggregationType.AVERAGE
+     });
   }
 }

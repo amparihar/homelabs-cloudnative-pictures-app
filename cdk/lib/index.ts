@@ -263,7 +263,7 @@ export class HomeLabsPipStack extends cdk.Stack {
         imageBucket: imageBucket,
         thumbnailBucket: thumbBucket,
         thumbnailQueue: thumbQueue,
-        workerInstanceCount: 1,
+        workerInstanceCount: 0,
       }
     );
 
@@ -272,14 +272,14 @@ export class HomeLabsPipStack extends cdk.Stack {
     thumbBucket.grantWrite(thumbnailWorker.workerTaskDef.taskRole);
     thumbQueue.grantConsumeMessages(thumbnailWorker.workerTaskDef.taskRole);
 
-    const thumbnailWorkerMetricBuilder = new WorkerAutoscalingMetricBuilder(
-      this,
-      "worker-autoscaling-metric-builder",
-      {
-        thumbQueue,
-        thumbWorkerService: thumbnailWorker.workerService,
-        cluster: thumbnailWorker.cluster.clusterName
-      }
-    );
+    // const thumbnailWorkerMetricBuilder = new WorkerAutoscalingMetricBuilder(
+    //   this,
+    //   "worker-autoscaling-metric-builder",
+    //   {
+    //     thumbQueue,
+    //     thumbWorkerService: thumbnailWorker.workerService,
+    //     cluster: thumbnailWorker.cluster.clusterName
+    //   }
+    // );
   }
 }
