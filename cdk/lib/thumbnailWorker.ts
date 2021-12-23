@@ -4,7 +4,7 @@ import * as _ecs from "@aws-cdk/aws-ecs";
 import * as _s3 from "@aws-cdk/aws-s3";
 import * as _sqs from "@aws-cdk/aws-sqs";
 import * as _cloudwatch from "@aws-cdk/aws-cloudwatch";
-import * as _autoscaling from "@aws-cdk/aws-autoscaling";
+
 import * as _cloudwatch_actions from "@aws-cdk/aws-cloudwatch-actions";
 import * as _applicationAutoScaling from "@aws-cdk/aws-applicationautoscaling";
 
@@ -99,18 +99,18 @@ export class ThumbnailWorker extends cdk.Construct {
     //         period: cdk.Duration.minutes(1),
     //     }),
     //     scalingSteps: [
-   
+
     //       { lower: 1, upper: 500, change: +1 },
     //       { lower: 500, upper: 1000, change: +1 },
     //       { lower: 1000, change: +1 },
     //     ],
     //     evaluationPeriods: 2,
-      
+
     //   }
     // );
 
     // CloudWatch Alarms
-    // The metric will be evaluated three time  
+    // The scale-out alarm will be trigged when the netric >= 10 for 2 evaluation periods out of 3 of duration 60 seconds
     const workerServicAutoScalOutpAlarm = new _cloudwatch.Alarm(
       this,
       "worker-service-auto-scale-out-alarm",
@@ -124,13 +124,13 @@ export class ThumbnailWorker extends cdk.Construct {
 
         evaluationPeriods: 3,
         datapointsToAlarm: 2,
-        threshold: 1000,
-        comparisonOperator:
-          _cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        threshold: 10,
+        comparisonOperator: _cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         treatMissingData: _cloudwatch.TreatMissingData.MISSING,
       }
     );
-
+    
+    // The scale-in alarm will be trigged when the netric < 10 for 2 evaluation periods out of 3 of duration 60 seconds
     const workerServicAutoScaleInAlarm = new _cloudwatch.Alarm(
       this,
       "worker-service-auto-scale-in-alarm",
@@ -144,13 +144,13 @@ export class ThumbnailWorker extends cdk.Construct {
 
         evaluationPeriods: 3,
         datapointsToAlarm: 2,
-        threshold: 1000,
+        threshold: 10,
         comparisonOperator: _cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
         treatMissingData: _cloudwatch.TreatMissingData.MISSING,
       }
     );
 
-    //// Application Autoscaling
+    //// Application Autoscaling //////////////////////////////////////////////////////////////
     const workerServiceScalableTarget =
       new _applicationAutoScaling.ScalableTarget(
         this,
@@ -164,53 +164,63 @@ export class ThumbnailWorker extends cdk.Construct {
         }
       );
 
-   // ScaleOut Action 
-    const workerServiceStepScaleOutAction = new _applicationAutoScaling.StepScalingAction(
-      this,
-      "worker-service-step-scale-out-action",
-      {
-        scalingTarget: workerServiceScalableTarget,
-        adjustmentType : _applicationAutoScaling.AdjustmentType.EXACT_CAPACITY,
-        metricAggregationType : _applicationAutoScaling.MetricAggregationType.AVERAGE
-      }
-    );
-    
+    // ScaleOut Action
+    const workerServiceStepScaleOutAction =
+      new _applicationAutoScaling.StepScalingAction(
+        this,
+        "worker-service-step-scale-out-action",
+        {
+          scalingTarget: workerServiceScalableTarget,
+          adjustmentType: _applicationAutoScaling.AdjustmentType.EXACT_CAPACITY,
+          metricAggregationType: _applicationAutoScaling.MetricAggregationType.AVERAGE,
+          policyName : "worker-service-step-scale-out"
+        }
+      );
+
+    // Triggers the adjustment when the metric is greater than or equal to 10 and less than 20
     workerServiceStepScaleOutAction.addAdjustment({
-      adjustment : 2,
-      lowerBound : 1000,
-      upperBound : 5000
-      
+      adjustment: 2,
+      lowerBound: 0,
+      upperBound: 10,
     });
-   
+
+    // Triggers the adjustment when the metric is greater than or equal to 20
     workerServiceStepScaleOutAction.addAdjustment({
-      adjustment : 3,
-      lowerBound : 5000,
+      adjustment: 3,
+      lowerBound: 10,
     });
 
     const applicationScalingOutAction =
-      new _cloudwatch_actions.ApplicationScalingAction(workerServiceStepScaleOutAction);
+      new _cloudwatch_actions.ApplicationScalingAction(
+        workerServiceStepScaleOutAction
+      );
 
     workerServicAutoScalOutpAlarm.addAlarmAction(applicationScalingOutAction);
-    
+
     // ScaleIn Action
-    const workerServiceStepScaleInAction = new _applicationAutoScaling.StepScalingAction(
-      this,
-      "worker-service-step-scale-in-action",
-      {
-        scalingTarget: workerServiceScalableTarget,
-        adjustmentType : _applicationAutoScaling.AdjustmentType.EXACT_CAPACITY,
-        metricAggregationType : _applicationAutoScaling.MetricAggregationType.AVERAGE
-      }
-    );
-    
+    const workerServiceStepScaleInAction =
+      new _applicationAutoScaling.StepScalingAction(
+        this,
+        "worker-service-step-scale-in-action",
+        {
+          scalingTarget: workerServiceScalableTarget,
+          adjustmentType: _applicationAutoScaling.AdjustmentType.EXACT_CAPACITY,
+          metricAggregationType:
+            _applicationAutoScaling.MetricAggregationType.AVERAGE,
+            policyName : "worker-service-step-scale-in"
+        }
+      );
+
+    // Triggers the adjustment when the metric is less than 10
     workerServiceStepScaleInAction.addAdjustment({
-      adjustment : 1,
-      lowerBound : 1000
-      
+      adjustment: 1,
+     upperBound: 0,
     });
-   
+    
     const applicationScalingInAction =
-      new _cloudwatch_actions.ApplicationScalingAction(workerServiceStepScaleInAction);
+      new _cloudwatch_actions.ApplicationScalingAction(
+        workerServiceStepScaleInAction
+      );
 
     workerServicAutoScaleInAlarm.addAlarmAction(applicationScalingInAction);
   }
