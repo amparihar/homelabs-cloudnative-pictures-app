@@ -204,17 +204,18 @@ export class HomeLabsPipStack extends cdk.Stack {
     // SQS
     // Image Queues
     const dlImageQueue = new _sqs.Queue(this, "dlImageQueue", {
-      queueName: "pip-image-buffer-dlqueue",
+      queueName: "pip-image-dlq",
       visibilityTimeout: cdk.Duration.seconds(30), // this is the default
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
+      retentionPeriod: cdk.Duration.days(14),
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const imageQueue = new _sqs.Queue(this, "imageQueue", {
-      queueName: "pip-image-buffer-queue",
+      queueName: "pip-image-queue",
       visibilityTimeout: cdk.Duration.seconds(60), // default is 30s
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
-      retentionPeriod: cdk.Duration.days(14),
+      retentionPeriod: cdk.Duration.days(4), // default
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       deadLetterQueue: {
         maxReceiveCount: 2,
@@ -224,17 +225,18 @@ export class HomeLabsPipStack extends cdk.Stack {
 
     // Thumbnail Queue
     const dlThumbQueue = new _sqs.Queue(this, "dlThumbQueue", {
-      queueName: "pip-thumb-buffer-dlqueue",
+      queueName: "pip-thumb-dlq",
       visibilityTimeout: cdk.Duration.seconds(30), // this is the default
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
+      retentionPeriod: cdk.Duration.days(14),
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     const thumbQueue = new _sqs.Queue(this, "thumbQueue", {
-      queueName: "pip-thumb-buffer-queue",
-      visibilityTimeout: cdk.Duration.seconds(90), // default is 30s
+      queueName: "pip-thumb-queue",
+      visibilityTimeout: cdk.Duration.seconds(180), // default is 30s, max 12 hrs
       receiveMessageWaitTime: cdk.Duration.seconds(20), // long polling
-      retentionPeriod: cdk.Duration.days(14),
+      retentionPeriod: cdk.Duration.days(4), // default
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       deadLetterQueue: {
         maxReceiveCount: 2,

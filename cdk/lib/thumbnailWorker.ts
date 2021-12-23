@@ -94,18 +94,23 @@ export class ThumbnailWorker extends cdk.Construct {
     // workerServiceAutoScaling.scaleOnMetric(
     //   "approximate-number-of-messages-visible",
     //   {
-    //     metric: props.thumbnailQueue.metricApproximateNumberOfMessagesVisible(),
+    //     metric: props.thumbnailQueue.metricApproximateNumberOfMessagesVisible().with({
+    //         statistic: "max",
+    //         period: cdk.Duration.minutes(1),
+    //     }),
     //     scalingSteps: [
-    //       { lower: 0, change: -1 },
+   
     //       { lower: 1, upper: 500, change: +1 },
     //       { lower: 500, upper: 1000, change: +1 },
     //       { lower: 1000, change: +1 },
     //     ],
     //     evaluationPeriods: 2,
+      
     //   }
     // );
 
     // CloudWatch Alarms
+    // The metric will be evaluated three time  
     const workerServicAutoScalOutpAlarm = new _cloudwatch.Alarm(
       this,
       "worker-service-auto-scale-out-alarm",
@@ -119,7 +124,7 @@ export class ThumbnailWorker extends cdk.Construct {
 
         evaluationPeriods: 3,
         datapointsToAlarm: 2,
-        threshold: 1,
+        threshold: 1000,
         comparisonOperator:
           _cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         treatMissingData: _cloudwatch.TreatMissingData.MISSING,
@@ -139,7 +144,7 @@ export class ThumbnailWorker extends cdk.Construct {
 
         evaluationPeriods: 3,
         datapointsToAlarm: 2,
-        threshold: 1,
+        threshold: 1000,
         comparisonOperator: _cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
         treatMissingData: _cloudwatch.TreatMissingData.MISSING,
       }
@@ -154,23 +159,59 @@ export class ThumbnailWorker extends cdk.Construct {
           serviceNamespace: _applicationAutoScaling.ServiceNamespace.ECS,
           maxCapacity: 3,
           minCapacity: 1,
-          resourceId: `service:${this._cluster.clusterName}:${this._workerService.serviceName}`,
+          resourceId: `service/${this._cluster.clusterName}/${this._workerService.serviceName}`,
           scalableDimension: "ecs:service:DesiredCount",
         }
       );
 
-    const stepScalingAction = new _applicationAutoScaling.StepScalingAction(
+   // ScaleOut Action 
+    const workerServiceStepScaleOutAction = new _applicationAutoScaling.StepScalingAction(
       this,
-      "",
+      "worker-service-step-scale-out-action",
       {
         scalingTarget: workerServiceScalableTarget,
-        
+        adjustmentType : _applicationAutoScaling.AdjustmentType.EXACT_CAPACITY,
+        metricAggregationType : _applicationAutoScaling.MetricAggregationType.AVERAGE
       }
     );
+    
+    workerServiceStepScaleOutAction.addAdjustment({
+      adjustment : 2,
+      lowerBound : 1000,
+      upperBound : 5000
+      
+    });
+   
+    workerServiceStepScaleOutAction.addAdjustment({
+      adjustment : 3,
+      lowerBound : 5000,
+    });
 
-    // const applicationScalingAction =
-    //   new _cloudwatch_actions.ApplicationScalingAction(stepScalingAction);
+    const applicationScalingOutAction =
+      new _cloudwatch_actions.ApplicationScalingAction(workerServiceStepScaleOutAction);
 
-    // workerServicAutoScalOutpAlarm.addAlarmAction(applicationScalingAction);
+    workerServicAutoScalOutpAlarm.addAlarmAction(applicationScalingOutAction);
+    
+    // ScaleIn Action
+    const workerServiceStepScaleInAction = new _applicationAutoScaling.StepScalingAction(
+      this,
+      "worker-service-step-scale-in-action",
+      {
+        scalingTarget: workerServiceScalableTarget,
+        adjustmentType : _applicationAutoScaling.AdjustmentType.EXACT_CAPACITY,
+        metricAggregationType : _applicationAutoScaling.MetricAggregationType.AVERAGE
+      }
+    );
+    
+    workerServiceStepScaleInAction.addAdjustment({
+      adjustment : 1,
+      lowerBound : 1000
+      
+    });
+   
+    const applicationScalingInAction =
+      new _cloudwatch_actions.ApplicationScalingAction(workerServiceStepScaleInAction);
+
+    workerServicAutoScaleInAlarm.addAlarmAction(applicationScalingInAction);
   }
 }
