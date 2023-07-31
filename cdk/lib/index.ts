@@ -98,13 +98,13 @@ export class HomeLabsPipStack extends cdk.Stack {
 
     const rekLayer = new _lambda.LayerVersion(this, "image-function-layer", {
       code: _lambda.Code.fromAsset("layer"),
-      compatibleRuntimes: [_lambda.Runtime.NODEJS_12_X],
+      compatibleRuntimes: [_lambda.Runtime.NODEJS_14_X],
     });
 
     const rekFn = new _lambda.Function(this, "rek-function", {
       code: _lambda.Code.fromAsset("src/rekognitionFunction"),
       handler: "index.run",
-      runtime: _lambda.Runtime.NODEJS_12_X,
+      runtime: _lambda.Runtime.NODEJS_14_X,
       memorySize: 1024,
       timeout: cdk.Duration.seconds(30),
       environment: {
@@ -140,7 +140,7 @@ export class HomeLabsPipStack extends cdk.Stack {
       {
         code: _lambda.Code.fromAsset("src/serviceFunction/getImage"),
         handler: "index.run",
-        runtime: _lambda.Runtime.NODEJS_12_X,
+        runtime: _lambda.Runtime.NODEJS_14_X,
         memorySize: 1024,
         timeout: cdk.Duration.seconds(30),
         environment: {
@@ -158,7 +158,7 @@ export class HomeLabsPipStack extends cdk.Stack {
       {
         code: _lambda.Code.fromAsset("src/serviceFunction/deleteImage"),
         handler: "index.run",
-        runtime: _lambda.Runtime.NODEJS_12_X,
+        runtime: _lambda.Runtime.NODEJS_14_X,
         memorySize: 1024,
         timeout: cdk.Duration.seconds(30),
         environment: {
