@@ -1,35 +1,38 @@
 import React from "react";
-import MaterialTable from "material-table";
+import { MaterialReactTable } from 'material-react-table';
 
-import { MatTableIcons } from "../../shared";
+import {
+  Box,
+  IconButton,
+  Tooltip,
+} from '@mui/material';
+import { Delete } from '@mui/icons-material';
 
 const PictureList = ({ pictureList, deletePictures }) => {
   const { isLoading, data } = pictureList;
   const columns = [
     {
-      title: "Picture Name",
-      field: "key",
+      header: "Picture Name",
+      accessorKey: "key",
     },
     {
-      title: "Last Modified",
-      field: "lastModified",
+      header: "Last Modified",
+      accessorKey: "lastModified",
     },
   ];
   return (
-    <MaterialTable
-      title="Your Pictures"
+    <MaterialReactTable
       columns={columns}
       data={data}
-      icons={MatTableIcons}
-      isLoading={isLoading}
-      options={{ search: true, selection: true }}
-      actions={[
-        {
-          tooltip: "Remove Selected Picture(s)",
-          icon: MatTableIcons.Delete,
-          onClick: deletePictures,
-        },
-      ]}
+      renderRowActions={({ row, table }) => (
+          <Box sx={{ display: 'flex', gap: '1rem' }}>
+            <Tooltip arrow placement="right" title="Delete">
+              <IconButton color="error" onClick={() => deletePictures(row)}>
+                <Delete />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
     />
   );
 };
