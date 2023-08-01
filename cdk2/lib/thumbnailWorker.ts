@@ -1,12 +1,14 @@
-import * as cdk from "@aws-cdk/core";
-import * as _ec2 from "@aws-cdk/aws-ec2";
-import * as _ecs from "@aws-cdk/aws-ecs";
-import * as _s3 from "@aws-cdk/aws-s3";
-import * as _sqs from "@aws-cdk/aws-sqs";
-import * as _cloudwatch from "@aws-cdk/aws-cloudwatch";
+import * as cdk from "aws-cdk-lib";
+import { Construct } from 'constructs';
 
-import * as _cloudwatch_actions from "@aws-cdk/aws-cloudwatch-actions";
-import * as _applicationAutoScaling from "@aws-cdk/aws-applicationautoscaling";
+import * as _ec2 from "aws-cdk-lib/aws-ec2";
+import * as _ecs from "aws-cdk-lib/aws-ecs";
+import * as _s3 from "aws-cdk-lib/aws-s3";
+import * as _sqs from "aws-cdk-lib/aws-sqs";
+import * as _cloudwatch from "aws-cdk-lib/aws-cloudwatch";
+
+import * as _cloudwatch_actions from "aws-cdk-lib/aws-cloudwatch-actions";
+import * as _applicationAutoScaling from "aws-cdk-lib/aws-applicationautoscaling";
 
 export interface IThumbnailWorkerProps extends cdk.StackProps {
   imageBucket: _s3.Bucket;
@@ -15,7 +17,7 @@ export interface IThumbnailWorkerProps extends cdk.StackProps {
   workerInstanceCount: number;
 }
 
-export class ThumbnailWorker extends cdk.Construct {
+export class ThumbnailWorker extends Construct {
   private _workerTaskDef: _ecs.FargateTaskDefinition;
   private _workerService: _ecs.FargateService;
   private _cluster: _ecs.Cluster;

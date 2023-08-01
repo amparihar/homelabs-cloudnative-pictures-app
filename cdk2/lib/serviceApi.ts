@@ -1,7 +1,8 @@
-import * as cdk from "@aws-cdk/core";
+import * as cdk from "aws-cdk-lib";
+import { Construct } from 'constructs';
 
-import * as _apigw from "@aws-cdk/aws-apigateway";
-import * as _lambda from "@aws-cdk/aws-lambda";
+import * as _apigw from "aws-cdk-lib/aws-apigateway";
+import * as _lambda from "aws-cdk-lib/aws-lambda";
 
 export interface IServiceApiProps extends cdk.StackProps {
   serviceFn: {
@@ -11,8 +12,8 @@ export interface IServiceApiProps extends cdk.StackProps {
   userPoolArns: string[];
 }
 
-export class ServiceApi extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: IServiceApiProps) {
+export class ServiceApi extends Construct {
+  constructor(scope: Construct, id: string, props: IServiceApiProps) {
     super(scope, id);
 
     let {

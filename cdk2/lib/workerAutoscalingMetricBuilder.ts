@@ -1,11 +1,13 @@
-import * as cdk from "@aws-cdk/core";
-import * as _events from "@aws-cdk/aws-events";
-import * as _events_targets from "@aws-cdk/aws-events-targets";
-import * as _lambda from "@aws-cdk/aws-lambda";
-import * as _logs from "@aws-cdk/aws-logs";
-import * as _sqs from "@aws-cdk/aws-sqs";
-import * as _iam from "@aws-cdk/aws-iam";
-import * as _ecs from "@aws-cdk/aws-ecs";
+import * as cdk from "aws-cdk-lib";
+import { Construct } from 'constructs';
+
+import * as _events from "aws-cdk-lib/aws-events";
+import * as _events_targets from "aws-cdk-lib/aws-events-targets";
+import * as _lambda from "aws-cdk-lib/aws-lambda";
+import * as _logs from "aws-cdk-lib/aws-logs";
+import * as _sqs from "aws-cdk-lib/aws-sqs";
+import * as _iam from "aws-cdk-lib/aws-iam";
+import * as _ecs from "aws-cdk-lib/aws-ecs";
 
 export interface IWorkerAutoscalingMetricBuilder extends cdk.StackProps {
   thumbQueue: _sqs.Queue;
@@ -13,7 +15,7 @@ export interface IWorkerAutoscalingMetricBuilder extends cdk.StackProps {
   cluster: string
 }
 
-export class WorkerAutoscalingMetricBuilder extends cdk.Construct {
+export class WorkerAutoscalingMetricBuilder extends Construct {
   private _metricBuilderFn: _lambda.Function;
   public get metricBuilderFn() {
     return this._metricBuilderFn;

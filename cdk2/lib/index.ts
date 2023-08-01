@@ -1,16 +1,16 @@
-import * as cdk from "@aws-cdk/core";
+import * as cdk from "aws-cdk-lib";
 
-import * as _s3 from "@aws-cdk/aws-s3";
-import * as _s3n from "@aws-cdk/aws-s3-notifications";
-import * as _dynamodb from "@aws-cdk/aws-dynamodb";
-import * as _lambda from "@aws-cdk/aws-lambda";
-import * as _lambdaEventSources from "@aws-cdk/aws-lambda-event-sources";
-import * as _iam from "@aws-cdk/aws-iam";
-import * as _logs from "@aws-cdk/aws-logs";
-import * as _sqs from "@aws-cdk/aws-sqs";
+import * as _s3 from "aws-cdk-lib/aws-s3";
+import * as _s3n from "aws-cdk-lib/aws-s3-notifications";
+import * as _dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as _lambda from "aws-cdk-lib/aws-lambda";
+import * as _lambdaEventSources from "aws-cdk-lib/aws-lambda-event-sources";
+import * as _iam from "aws-cdk-lib/aws-iam";
+import * as _logs from "aws-cdk-lib/aws-logs";
+import * as _sqs from "aws-cdk-lib/aws-sqs";
 
-import * as _sns from "@aws-cdk/aws-sns";
-import * as _sns_sub from "@aws-cdk/aws-sns-subscriptions";
+import * as _sns from "aws-cdk-lib/aws-sns";
+import * as _sns_sub from "aws-cdk-lib/aws-sns-subscriptions";
 
 import { ServiceApi } from "./serviceApi";
 import { Cognito } from "./cognito";
@@ -98,13 +98,13 @@ export class HomeLabsPipStack extends cdk.Stack {
 
     const rekLayer = new _lambda.LayerVersion(this, "image-function-layer", {
       code: _lambda.Code.fromAsset("layer"),
-      compatibleRuntimes: [_lambda.Runtime.NODEJS_14_X],
+      compatibleRuntimes: [_lambda.Runtime.NODEJS_16_X],
     });
 
     const rekFn = new _lambda.Function(this, "rek-function", {
       code: _lambda.Code.fromAsset("src/rekognitionFunction"),
       handler: "index.run",
-      runtime: _lambda.Runtime.NODEJS_14_X,
+      runtime: _lambda.Runtime.NODEJS_16_X,
       memorySize: 1024,
       timeout: cdk.Duration.seconds(30),
       environment: {
@@ -140,7 +140,7 @@ export class HomeLabsPipStack extends cdk.Stack {
       {
         code: _lambda.Code.fromAsset("src/serviceFunction/getImage"),
         handler: "index.run",
-        runtime: _lambda.Runtime.NODEJS_14_X,
+        runtime: _lambda.Runtime.NODEJS_16_X,
         memorySize: 1024,
         timeout: cdk.Duration.seconds(30),
         environment: {
@@ -158,7 +158,7 @@ export class HomeLabsPipStack extends cdk.Stack {
       {
         code: _lambda.Code.fromAsset("src/serviceFunction/deleteImage"),
         handler: "index.run",
-        runtime: _lambda.Runtime.NODEJS_14_X,
+        runtime: _lambda.Runtime.NODEJS_16_X,
         memorySize: 1024,
         timeout: cdk.Duration.seconds(30),
         environment: {

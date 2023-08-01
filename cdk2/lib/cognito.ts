@@ -1,18 +1,20 @@
-import * as cdk from "@aws-cdk/core";
-import * as _iam from "@aws-cdk/aws-iam";
-import * as _cognito from "@aws-cdk/aws-cognito";
+import * as cdk from "aws-cdk-lib";
+import { Construct } from 'constructs';
+
+import * as _iam from "aws-cdk-lib/aws-iam";
+import * as _cognito from "aws-cdk-lib/aws-cognito";
 
 export interface ICognito extends cdk.StackProps {
   imageBucketArn: string;
 }
 
-export class Cognito extends cdk.Construct {
+export class Cognito extends Construct {
   private _userPool: _cognito.UserPool;
   public get userPool() {
     return this._userPool;
   }
 
-  constructor(scope: cdk.Construct, id: string, props: ICognito) {
+  constructor(scope: Construct, id: string, props: ICognito) {
     super(scope, id);
 
     const { imageBucketArn } = props;
