@@ -12,6 +12,8 @@ export class S3StaticWebStack extends cdk.Stack {
       websiteErrorDocument: "index.html",
       websiteIndexDocument: "index.html",
       autoDeleteObjects: true,
+      blockPublicAccess: _s3.BlockPublicAccess.BLOCK_ACLS,
+      accessControl: _s3.BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
