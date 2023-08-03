@@ -85,7 +85,7 @@ const Picture = () => {
     }
   };
 
-  const onPictureDeletes = async (evt, data) => {
+  const onPictureDeletes = async (data) => {
     const cfm = window.confirm(
       `Are you sure to delete ${data.length} picture(s)?`
     );
